@@ -199,7 +199,7 @@ async def new_user(
     - model_rpm_limit: Optional[float] - Model-specific rpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
     - model_tpm_limit: Optional[float] - Model-specific tpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
     - spend: Optional[float] - Amount spent by user. Default is 0. Will be updated by proxy whenever user is used. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo").
-    - team_id: Optional[str] - [DEPRECATED PARAM] The team id of the user. Default is None. 
+    - team_id: Optional[str] - [DEPRECATED PARAM] The team id of the user. Default is None.
     - duration: Optional[str] - Duration for the key auto-created on `/user/new`. Default is None.
     - key_alias: Optional[str] - Alias for the key auto-created on `/user/new`. Default is None.
 
@@ -209,7 +209,7 @@ async def new_user(
     - user_id: (str) Unique user id - used for tracking spend across multiple keys for same user id.
     - max_budget: (float|None) Max budget for given user.
 
-    Usage Example 
+    Usage Example
 
     ```shell
      curl -X POST "http://localhost:4000/user/new" \
@@ -389,6 +389,7 @@ async def ui_get_available_role(
             LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
             LitellmUserRoles.INTERNAL_USER,
             LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            LitellmUserRoles.CUSTOM_USER,
         ]:
             _data_to_return[role.value] = {
                 "description": role.description,
@@ -554,7 +555,7 @@ async def _get_user_info_for_proxy_admin():
     from litellm.proxy.proxy_server import prisma_client
 
     sql_query = """
-        SELECT 
+        SELECT
             (SELECT json_agg(t.*) FROM "LiteLLM_TeamTable" t) as teams,
             (SELECT json_agg(k.*) FROM "LiteLLM_VerificationToken" k WHERE k.team_id != 'litellm-dashboard' OR k.team_id IS NULL) as keys
     """
@@ -687,7 +688,7 @@ async def user_update(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
     """
-    Example curl 
+    Example curl
 
     ```
     curl --location 'http://0.0.0.0:4000/user/update' \
@@ -698,7 +699,7 @@ async def user_update(
         "user_role": "proxy_admin_viewer"
     }'
     ```
-    
+
     Parameters:
         - user_id: Optional[str] - Specify a user id. If not set, a unique id will be generated.
         - user_email: Optional[str] - Specify a user email.
@@ -726,11 +727,11 @@ async def user_update(
         - model_rpm_limit: Optional[float] - Model-specific rpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
         - model_tpm_limit: Optional[float] - Model-specific tpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
         - spend: Optional[float] - Amount spent by user. Default is 0. Will be updated by proxy whenever user is used. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo").
-        - team_id: Optional[str] - [DEPRECATED PARAM] The team id of the user. Default is None. 
+        - team_id: Optional[str] - [DEPRECATED PARAM] The team id of the user. Default is None.
         - duration: Optional[str] - [NOT IMPLEMENTED].
         - key_alias: Optional[str] - [NOT IMPLEMENTED].
-            
-    
+
+
     """
     from litellm.proxy.proxy_server import litellm_proxy_admin_name, prisma_client
 

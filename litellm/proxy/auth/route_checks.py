@@ -59,7 +59,6 @@ class RouteChecks:
         """
         Checks if Non Proxy Admin User is allowed to access the route
         """
-
         # Check user has defined custom admin routes
         RouteChecks.custom_admin_only_route_check(
             route=route,
@@ -148,6 +147,16 @@ class RouteChecks:
         elif RouteChecks.check_route_access(
             route=route, allowed_routes=LiteLLMRoutes.self_managed_routes.value
         ):  # routes that manage their own allowed/disallowed logic
+            pass
+        elif _user_role == LitellmUserRoles.CUSTOM_USER.value:
+            print("custom user", user_obj)
+            if route in LiteLLMRoutes.custom_user_routes.value:
+                pass
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"user not allowed to access this route. Route={route} is an custom user only route",
+                )
             pass
         else:
             user_role = "unknown"

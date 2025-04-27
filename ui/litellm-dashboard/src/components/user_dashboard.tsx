@@ -8,7 +8,7 @@ import {
   Organization,
   organizationListCall,
   DEFAULT_ORGANIZATION,
-  keyInfoCall
+  keyInfoCall,
 } from "./networking";
 import { fetchTeams } from "./common_components/fetch_teams";
 import { Grid, Col, Card, Text, Title } from "@tremor/react";
@@ -25,7 +25,7 @@ import { Typography } from "antd";
 import { clearTokenCookies } from "@/utils/cookieUtils";
 const isLocal = process.env.NODE_ENV === "development";
 if (isLocal != true) {
-  console.log = function() {};
+  console.log = function () {};
 }
 console.log("isLocal:", isLocal);
 const proxyBaseUrl = isLocal ? "http://localhost:4000" : null;
@@ -39,19 +39,18 @@ export interface ProxySettings {
   NUM_SPEND_LOGS_ROWS: number;
 }
 
-
 export type UserInfo = {
   models: string[];
   max_budget?: number | null;
   spend: number;
-}
+};
 
 function getCookie(name: string) {
-  console.log("COOKIES", document.cookie)
+  console.log("COOKIES", document.cookie);
   const cookieValue = document.cookie
-      .split('; ')
-      .find(row => row.startsWith(name + '='));
-  return cookieValue ? cookieValue.split('=')[1] : null;
+    .split("; ")
+    .find((row) => row.startsWith(name + "="));
+  return cookieValue ? cookieValue.split("=")[1] : null;
 }
 
 interface UserDashboardProps {
@@ -85,24 +84,24 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
   setTeams,
   setKeys,
   premiumUser,
-  organizations
+  organizations,
 }) => {
-  const [userSpendData, setUserSpendData] = useState<UserInfo | null>(
-    null
-  );
+  const [userSpendData, setUserSpendData] = useState<UserInfo | null>(null);
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
 
   // Assuming useSearchParams() hook exists and works in your setup
   const searchParams = useSearchParams()!;
 
-  const token = getCookie('token');
+  const token = getCookie("token");
 
   const invitation_id = searchParams.get("invitation_id");
 
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [teamSpend, setTeamSpend] = useState<number | null>(null);
   const [userModels, setUserModels] = useState<string[]>([]);
-  const [proxySettings, setProxySettings] = useState<ProxySettings | null>(null);
+  const [proxySettings, setProxySettings] = useState<ProxySettings | null>(
+    null
+  );
   const defaultTeam: TeamInterface = {
     models: [],
     team_alias: "Default Team",
@@ -140,6 +139,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
         return "Internal User";
       case "internal_user_viewer":
         return "Internal Viewer";
+      case "custom_user":
+        return "Custom User";
       default:
         return "Unknown Role";
     }
@@ -179,10 +180,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
       if (cachedUserModels) {
         setUserModels(JSON.parse(cachedUserModels));
       } else {
-        console.log(`currentOrg: ${JSON.stringify(currentOrg)}`)
+        console.log(`currentOrg: ${JSON.stringify(currentOrg)}`);
         const fetchData = async () => {
           try {
-            const proxy_settings: ProxySettings = await getProxyUISettings(accessToken);
+            const proxy_settings: ProxySettings =
+              await getProxyUISettings(accessToken);
             setProxySettings(proxy_settings);
 
             const response = await userInfoCall(
@@ -193,24 +195,24 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
               null,
               null
             );
-            
 
             setUserSpendData(response["user_info"]);
-            console.log(`userSpendData: ${JSON.stringify(userSpendData)}`)
-            
+            console.log(`userSpendData: ${JSON.stringify(userSpendData)}`);
 
             // set keys for admin and users
             if (!response?.teams[0].keys) {
-              setKeys(response["keys"]); 
+              setKeys(response["keys"]);
             } else {
               setKeys(
                 response["keys"].concat(
                   response.teams
-                    .filter((team: any) => userRole === "Admin" || team.user_id === userID)
+                    .filter(
+                      (team: any) =>
+                        userRole === "Admin" || team.user_id === userID
+                    )
                     .flatMap((team: any) => team.keys)
                 )
               );
-              
             }
 
             sessionStorage.setItem(
@@ -254,7 +256,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
     }
   }, [userID, token, accessToken, keys, userRole]);
 
-
   useEffect(() => {
     // check key health - if it's invalid, redirect to login
     if (accessToken) {
@@ -267,15 +268,17 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
             gotoLogin();
           }
         }
-      }
+      };
       fetchKeyInfo();
     }
   }, [accessToken]);
 
   useEffect(() => {
-    console.log(`currentOrg: ${JSON.stringify(currentOrg)}, accessToken: ${accessToken}, userID: ${userID}, userRole: ${userRole}`)
+    console.log(
+      `currentOrg: ${JSON.stringify(currentOrg)}, accessToken: ${accessToken}, userID: ${userID}, userRole: ${userRole}`
+    );
     if (accessToken) {
-      console.log(`fetching teams`)
+      console.log(`fetching teams`);
       fetchTeams(accessToken, userID, userRole, currentOrg, setTeams);
     }
   }, [currentOrg]);
@@ -289,7 +292,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
       selectedTeam.team_id !== null
     ) {
       let sum = 0;
-      console.log(`keys: ${JSON.stringify(keys)}`)
+      console.log(`keys: ${JSON.stringify(keys)}`);
       for (const key of keys) {
         if (
           selectedTeam.hasOwnProperty("team_id") &&
@@ -299,7 +302,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
           sum += key.spend;
         }
       }
-      console.log(`sum: ${sum}`)
+      console.log(`sum: ${sum}`);
       setTeamSpend(sum);
     } else if (keys !== null) {
       // sum the keys which don't have team-id set (default team)
@@ -311,31 +314,28 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
     }
   }, [selectedTeam]);
 
-
   if (invitation_id != null) {
-    return (
-      <Onboarding></Onboarding>
-    )
+    return <Onboarding></Onboarding>;
   }
 
   function gotoLogin() {
     // Clear token cookies using the utility function
     clearTokenCookies();
-    
+
     const url = proxyBaseUrl
       ? `${proxyBaseUrl}/sso/key/generate`
       : `/sso/key/generate`;
 
     console.log("Full URL:", url);
-    window.location.href = url; 
+    window.location.href = url;
 
     return null;
   }
 
   if (token == null) {
-    // user is not logged in as yet 
+    // user is not logged in as yet
     console.log("All cookies before redirect:", document.cookie);
-    
+
     // Clear token cookies using the utility function
     gotoLogin();
     return null;
@@ -346,48 +346,45 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
       console.log("Decoded token:", decoded);
       const expTime = decoded.exp;
       const currentTime = Math.floor(Date.now() / 1000);
-      
+
       if (expTime && currentTime >= expTime) {
         console.log("Token expired, redirecting to login");
-        
+
         // Clear token cookies
         clearTokenCookies();
-        
+
         const url = proxyBaseUrl
           ? `${proxyBaseUrl}/sso/key/generate`
           : `/sso/key/generate`;
-        
+
         console.log("Full URL for expired token:", url);
         window.location.href = url;
-        
+
         return null;
       }
     } catch (error) {
       console.error("Error decoding token:", error);
       // If there's an error decoding the token, consider it invalid
       clearTokenCookies();
-      
+
       const url = proxyBaseUrl
         ? `${proxyBaseUrl}/sso/key/generate`
         : `/sso/key/generate`;
-      
+
       console.log("Full URL after token decode error:", url);
       window.location.href = url;
-      
+
       return null;
     }
-    
+
     if (accessToken == null) {
       return null;
     }
   }
 
   if (userID == null) {
-    return (
-      <h1>User ID is not set</h1>
-    );
+    return <h1>User ID is not set</h1>;
   }
-
 
   if (userRole == null) {
     setUserRole("App Owner");
@@ -409,7 +406,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
     <div className="w-full mx-4 h-[75vh]">
       <Grid numItems={1} className="gap-2 p-8 w-full mt-2">
         <Col numColSpan={1} className="flex flex-col gap-2">
-        <CreateKey
+          <CreateKey
             key={selectedTeam ? selectedTeam.team_id : null}
             userID={userID}
             team={selectedTeam as Team | null}

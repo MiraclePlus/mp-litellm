@@ -83,6 +83,8 @@ class LitellmUserRoles(str, enum.Enum):
     # Internal User Roles
     INTERNAL_USER = "internal_user"
     INTERNAL_USER_VIEW_ONLY = "internal_user_viewer"
+    # 自定义权限用户 用于登录 与 https://app.asana.com/0/home/1207291501545177/1210018641157253 相关联
+    CUSTOM_USER = "custom_user"
 
     # Team Roles
     TEAM = "team"
@@ -106,6 +108,7 @@ class LitellmUserRoles(str, enum.Enum):
             "proxy_admin_viewer": "view all keys, view all spend",
             "internal_user": "view/create/delete their own keys, view their own spend",
             "internal_user_viewer": "view their own keys, view their own spend",
+            "custom_user": "custom user for manage models only",
             "team": "team scope used for JWT auth",
             "customer": "customer",
         }
@@ -121,6 +124,7 @@ class LitellmUserRoles(str, enum.Enum):
             "proxy_admin_viewer": "Admin (View Only)",
             "internal_user": "Internal User (Create/Delete/View)",
             "internal_user_viewer": "Internal User (View Only)",
+            "custom_user": "Custom User (Manage Models Only)",
             "team": "Team",
             "customer": "Customer",
         }
@@ -469,6 +473,29 @@ class LiteLLMRoutes(enum.Enum):
         "/model/delete",
         "/user/daily/activity",
     ]  # routes that manage their own allowed/disallowed logic
+
+    custom_user_routes = [
+        "/credentials",
+        "/model/metrics",
+        "/model/info",
+        "/v1/model/info",
+        "/v2/model/info",
+        "/get/litellm_model_cost_map",
+        "/model/streaming_metrics",
+        "/model/metrics/exceptions",
+        "/model/metrics/slow_responses",
+        "/model/new",
+        "/model/update",
+        "/model/delete",
+        "/model/info",
+        "/health/test_connection",
+        "/credentials/{credential_name}",
+        "/health",
+        "/config/update",
+        "/user/available_roles",
+        "/user/list",
+        "/team/list"
+    ]
 
     ## Org Admin Routes ##
 
@@ -1682,6 +1709,8 @@ class LiteLLM_UserTable(LiteLLMPydanticObjectBase):
     metadata: Optional[dict] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    # 自定义权限用户所有 判断用户是否权限访问某个tab
+    view_tabs: Optional[List[str]] = None
 
     @model_validator(mode="before")
     @classmethod
