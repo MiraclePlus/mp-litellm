@@ -1,0 +1,1 @@
+nohup litellm --config config.yaml > litellm.log 2>&1 &  # 后台运行litellm
