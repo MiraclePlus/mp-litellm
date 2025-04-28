@@ -883,19 +883,19 @@ class Router:
     @overload
     async def acompletion(
         self, model: str, messages: List[AllMessageValues], stream: Literal[True], **kwargs
-    ) -> CustomStreamWrapper: 
+    ) -> CustomStreamWrapper:
         ...
 
     @overload
     async def acompletion(
         self, model: str, messages: List[AllMessageValues], stream: Literal[False] = False, **kwargs
-    ) -> ModelResponse: 
+    ) -> ModelResponse:
         ...
 
     @overload
     async def acompletion(
         self, model: str, messages: List[AllMessageValues], stream: Union[Literal[True], Literal[False]] = False, **kwargs
-    ) -> Union[CustomStreamWrapper, ModelResponse]: 
+    ) -> Union[CustomStreamWrapper, ModelResponse]:
         ...
 
     # fmt: on
@@ -1503,13 +1503,13 @@ class Router:
     @overload
     async def schedule_acompletion(
         self, model: str, messages: List[AllMessageValues], priority: int, stream: Literal[False] = False, **kwargs
-    ) -> ModelResponse: 
+    ) -> ModelResponse:
         ...
-    
+
     @overload
     async def schedule_acompletion(
         self, model: str, messages: List[AllMessageValues], priority: int, stream: Literal[True], **kwargs
-    ) -> CustomStreamWrapper: 
+    ) -> CustomStreamWrapper:
         ...
 
     # fmt: on
