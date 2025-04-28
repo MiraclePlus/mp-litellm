@@ -1,3 +1,5 @@
+config.yaml
+litellm.log
 .python-version
 .venv
 .env
@@ -12,7 +14,6 @@ bun.lockb
 .aider*
 litellm_results.jsonl
 secrets.toml
-.gitignore
 litellm/proxy/litellm_secrets.toml
 litellm/proxy/api_log.json
 .idea/
@@ -32,7 +33,6 @@ litellm/tests/dynamo*.log
 .vscode/settings.json
 litellm/proxy/log.txt
 proxy_server_config_@.yaml
-.gitignore
 proxy_server_config_2.yaml
 litellm/proxy/secret_managers/credentials.json
 hosted_config.yaml
@@ -42,7 +42,6 @@ litellm/proxy/tests/package-lock.json
 ui/litellm-dashboard/.next
 ui/litellm-dashboard/node_modules
 ui/litellm-dashboard/next-env.d.ts
-ui/litellm-dashboard/package.json
 ui/litellm-dashboard/package-lock.json
 deploy/charts/litellm/*.tgz
 deploy/charts/litellm/charts/*
@@ -88,3 +87,4 @@ litellm/proxy/migrations/*config.yaml
 litellm/proxy/migrations/*
 config.yaml
 tests/litellm/litellm_core_utils/llm_cost_calc/log.txt
+litellm_venv/*
