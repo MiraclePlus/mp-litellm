@@ -80,6 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: <BlockOutlined />,
       roles: rolesWithWriteAccess,
     },
+<<<<<<< HEAD
     {
       key: "12",
       page: "new_usage",
@@ -87,6 +88,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: <BarChartOutlined />,
       roles: [...all_admin_roles, ...internalUserRoles],
     },
+=======
+    { key: "4", page: "usage", label: "Usage", icon: <BarChartOutlined /> },
+>>>>>>> 5f7c53204 (Merge pull request #2 from MiraclePlus/feature/20250428-internal-user-permisson)
     { key: "6", page: "teams", label: "Teams", icon: <TeamOutlined /> },
     {
       key: "17",
@@ -143,10 +147,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           roles: all_admin_roles,
         },
         {
-          key: "4",
-          page: "usage",
-          label: "Old Usage",
+          key: "12",
+          page: "new_usage",
+          label: "New Usage",
           icon: <BarChartOutlined />,
+          roles: [...all_admin_roles, ...internalUserRoles],
         },
         {
           key: "20",
