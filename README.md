@@ -22,15 +22,19 @@
 
 ### 前端
 
+```
 cd ui/litellm-dashboard/
 bash build_ui.sh
+```
 
 ### 后端
 
+```
 cd ~/litellm
 ps aux | grep litellm
 kill xxxxx
 nohup litellm --config config.yaml > litellm.log 2>&1 &
+```
 
 <h1 align="center">
         🚅 LiteLLM
