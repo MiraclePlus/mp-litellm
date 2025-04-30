@@ -423,3 +423,16 @@ model LiteLLM_ManagedFileTable {
   @@index([unified_file_id])
 }
 
+// 基准测试
+model LiteLLM_IdentityEval{
+  id Int @id @default(autoincrement())
+  model_id String
+  dataset_name String
+  metric String
+  score Float
+  date DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([model_id])
+}

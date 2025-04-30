@@ -29,6 +29,7 @@ from litellm.constants import (
     DEFAULT_MAX_RECURSE_DEPTH,
     DEFAULT_SLACK_ALERTING_THRESHOLD,
 )
+from litellm.jobs import identity_eval_job
 from litellm.types.utils import (
     ModelResponse,
     ModelResponseStream,
@@ -164,6 +165,7 @@ from litellm.proxy.auth.user_api_key_auth import (
     user_api_key_auth_websocket,
 )
 from litellm.proxy.batches_endpoints.endpoints import router as batches_router
+from litellm.proxy.identity_eval_endpoints.endpoints import router as identity_eval_router
 
 ## Import All Misc routes here ##
 from litellm.proxy.caching_routes import router as caching_router
@@ -3189,6 +3191,18 @@ class ProxyStartupEvent:
             from litellm.integrations.prometheus import PrometheusLogger
 
             PrometheusLogger.initialize_budget_metrics_cron_job(scheduler=scheduler)
+
+        global llm_router
+
+        # 模型降智评测
+        # scheduler.add_job(
+        #     identity_eval_job.identity_eval_task,  # 要执行的函数
+        #     "interval",  # 间隔执行模式
+        #     seconds=10,  # 执行间隔
+        #     max_instances=1,  # 最大实例数
+        #     args=[llm_router, prisma_client],  # 传递给函数的参数
+        # )
+        # await identity_eval_job.identity_eval_task(llm_router, prisma_client)
 
         scheduler.start()
 
@@ -8165,6 +8179,7 @@ async def get_routes():
 app.include_router(router)
 app.include_router(response_router)
 app.include_router(batches_router)
+app.include_router(identity_eval_router)
 app.include_router(rerank_router)
 app.include_router(fine_tuning_router)
 app.include_router(credential_router)
