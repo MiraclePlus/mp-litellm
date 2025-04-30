@@ -1,13 +1,14 @@
 import datetime
+import logging
 from dataclasses import dataclass
 from typing import Optional, Dict, Union
 
+from evalscope import TaskConfig, run_task
+from evalscope.constants import EvalType
+
 import litellm
 from litellm import Router
-import logging
 from litellm.proxy.utils import PrismaClient
-from evalscope import TaskConfig, run_task
-from evalscope.constants import EvalType, JudgeStrategy
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)
@@ -89,47 +90,46 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
             logger.info(f"开始基准测试模型: {model_name}，数据集: {dataset.dataset_name}")
 
             try:
-                # task_config = TaskConfig(
-                #     model=model_name,
-                #     datasets=[dataset.dataset_name],
-                #     dataset_args=dataset.dataset_args,
-                #     eval_type=EvalType.SERVICE,
-                #     api_url="http://localhost/v1",
-                #     # api_key="sk-ZY_wnuzes5znMQV31EXRlw", 生产环境的
-                #     api_key="sk-ZY_wnuzes5znMQV31EXRlw",
-                #     timeout=3600,
-                #     eval_batch_size=dataset.eval_concurrency,
-                #     limit=dataset.dataset_limit,
-                #     generation_config={"temperature": TEMPERATURE, "do_sample": True},
-                #     dataset_dir=CACHE_PATH,
-                #     judge_worker_num=1,  # > 1 could run into deadlock
-                #     use_cache=TODAY,
-                # )
-                #
-                # report = run_task(task_config)[dataset.dataset_name]
-                #
-                # rslt = {
-                #     "model_id": model_name,
-                #     "dataset_name": (
-                #         f"{dataset.dataset_name}"
-                #         if not dataset.dataset_args
-                #            or not dataset.dataset_args.get("subset_list")
-                #         else f"{dataset.dataset_name}_{'_'.join(dataset.dataset_args['subset_list'])}"
-                #     ),  # type: ignore
-                #     "metric": report.metrics[0].name,
-                #     "score": report.metrics[0].score,
-                # }
-                create = await prisma_client.db.litellm_identityeval.create(
-                    {'model_id': model_name, 'dataset_name': dataset.dataset_name, 'metric': 'AveragePass@1',
-                     'score': 0.44,
-                     'date': litellm.utils.get_utc_datetime()})
+                task_config = TaskConfig(
+                    model=model_name,
+                    datasets=[dataset.dataset_name],
+                    dataset_args=dataset.dataset_args,
+                    eval_type=EvalType.SERVICE,
+                    api_url="http://localhost/v1",
+                    # api_key="sk-ZY_wnuzes5znMQV31EXRlw", 生产环境的
+                    api_key="sk-ZY_wnuzes5znMQV31EXRlw",
+                    timeout=3600,
+                    eval_batch_size=dataset.eval_concurrency,
+                    limit=dataset.dataset_limit,
+                    generation_config={"temperature": TEMPERATURE, "do_sample": True},
+                    dataset_dir=CACHE_PATH,
+                    judge_worker_num=1,  # > 1 could run into deadlock
+                    use_cache=TODAY,
+                )
+
+                report = run_task(task_config)[dataset.dataset_name]
+
+                rslt = {
+                    "model_id": model_name,
+                    "dataset_name": (
+                        f"{dataset.dataset_name}"
+                        if not dataset.dataset_args
+                           or not dataset.dataset_args.get("subset_list")
+                        else f"{dataset.dataset_name}_{'_'.join(dataset.dataset_args['subset_list'])}"
+                    ),  # type: ignore
+                    "metric": report.metrics[0].name,
+                    "score": report.metrics[0].score,
+                }
+                rslt["date"] = litellm.utils.get_utc_datetime()
+
+                await prisma_client.db.litellm_identityeval.create(rslt)
             except Exception as e:
                 print(f"Error running task for {model_name} on {dataset.dataset_name}: {e}")
-                # send_message_to_feishu(
-                #     f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
-                #     webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
-                # )
-                create = await prisma_client.db.litellm_identityeval.create(
+                send_message_to_feishu(
+                    f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
+                    webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
+                )
+                await prisma_client.db.litellm_identityeval.create(
                     {'model_id': model_name, 'dataset_name': dataset.dataset_name, 'metric': 'AveragePass@1',
                      'score': 0,
                      'date': litellm.utils.get_utc_datetime()})

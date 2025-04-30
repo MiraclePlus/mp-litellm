@@ -11,6 +11,7 @@ import time
 import traceback
 import uuid
 import warnings
+import zoneinfo
 from datetime import datetime, timedelta
 from typing import (
     TYPE_CHECKING,
@@ -3195,15 +3196,14 @@ class ProxyStartupEvent:
         global llm_router
 
         # 模型降智评测
-        # scheduler.add_job(
-        #     identity_eval_job.identity_eval_task,  # 要执行的函数
-        #     "interval",  # 间隔执行模式
-        #     seconds=10,  # 执行间隔
-        #     max_instances=1,  # 最大实例数
-        #     args=[llm_router, prisma_client],  # 传递给函数的参数
-        # )
-        # await identity_eval_job.identity_eval_task(llm_router, prisma_client)
-
+        scheduler.add_job(
+            identity_eval_job.identity_eval_task,  # 要执行的函数
+            "cron",  # 间隔执行模式
+            day=1,
+            timezone=zoneinfo.ZoneInfo("Asia/Shanghai"),  # 设置时区为上海
+            max_instances=1,  # 最大实例数
+            args=[llm_router, prisma_client],  # 传递给函数的参数
+        )
         scheduler.start()
 
     @classmethod
