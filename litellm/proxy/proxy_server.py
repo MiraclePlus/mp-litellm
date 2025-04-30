@@ -5957,18 +5957,18 @@ async def model_metrics_exceptions(
     """
     sql_query = """
         WITH cte AS (
-            SELECT 
+            SELECT
                 CASE WHEN api_base = '' THEN litellm_model_name ELSE CONCAT(litellm_model_name, '-', api_base) END AS combined_model_api_base,
                 exception_type,
                 COUNT(*) AS num_rate_limit_exceptions
             FROM "LiteLLM_ErrorLogs"
-            WHERE 
-                "startTime" >= $1::timestamp 
-                AND "endTime" <= $2::timestamp 
+            WHERE
+                "startTime" >= $1::timestamp
+                AND "endTime" <= $2::timestamp
                 AND model_group = $3
             GROUP BY combined_model_api_base, exception_type
         )
-        SELECT 
+        SELECT
             combined_model_api_base,
             COUNT(*) AS total_exceptions,
             json_object_agg(exception_type, num_rate_limit_exceptions) AS exception_counts
@@ -6392,17 +6392,25 @@ async def model_group_info(
     else:
         proxy_model_list = llm_router.get_model_names()
         model_access_groups = llm_router.get_model_access_groups()
-
     key_models = get_key_models(
         user_api_key_dict=user_api_key_dict,
         proxy_model_list=proxy_model_list,
         model_access_groups=model_access_groups,
     )
+
     team_models = get_team_models(
         team_models=user_api_key_dict.team_models,
         proxy_model_list=proxy_model_list,
         model_access_groups=model_access_groups,
     )
+
+    # 当前用户如果role是internal_user 则将key_models和team_models都置为空
+    # 这样就能返回所有的模型
+    # print("user_api_key_dict", user_api_key_dict)
+    if user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER:
+        key_models = []
+        team_models = []
+
     all_models_str = get_complete_model_list(
         key_models=key_models,
         team_models=team_models,
@@ -6754,7 +6762,7 @@ async def login(request: Request):  # noqa: PLR0915
         get_disabled_non_admin_personal_key_creation()
     )
     """
-    To login to Admin UI, we support the following 
+    To login to Admin UI, we support the following
     - Login with UI_USERNAME and UI_PASSWORD
     - Login with Invite Link `user_email` and `password` combination
     """
@@ -7558,8 +7566,8 @@ async def update_config_general_settings(
     """
     - Check if prisma_client is None
     - Check if user allowed to call this endpoint (admin-only)
-    - Check if param in general settings 
-    - Check if config value is valid type 
+    - Check if param in general settings
+    - Check if config value is valid type
     """
 
     if prisma_client is None:
@@ -7635,7 +7643,7 @@ async def get_config_general_settings(
     """
     - Check if prisma_client is None
     - Check if user allowed to call this endpoint (admin-only)
-    - Check if param in general settings 
+    - Check if param in general settings
     """
     if prisma_client is None:
         raise HTTPException(
@@ -7699,7 +7707,7 @@ async def get_config_list(
     """
     - Check if prisma_client is None
     - Check if user allowed to call this endpoint (admin-only)
-    - Check if param in general settings 
+    - Check if param in general settings
     """
     if prisma_client is None:
         raise HTTPException(
@@ -7835,7 +7843,7 @@ async def delete_config_general_settings(
     """
     - Check if prisma_client is None
     - Check if user allowed to call this endpoint (admin-only)
-    - Check if param in general settings 
+    - Check if param in general settings
     """
     if prisma_client is None:
         raise HTTPException(
@@ -7926,7 +7934,7 @@ async def get_config():  # noqa: PLR0915
                 },
             }
         ]
-        
+
         """
         for _callback in _success_callbacks:
             if _callback != "langfuse":
