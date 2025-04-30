@@ -14,4 +14,4 @@ CREATE TABLE "LiteLLM_IdentityEval"
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "LiteLLM_IdentityEval_model_id_date_key" ON "LiteLLM_CredentialsTable"("credential_name");
+CREATE UNIQUE INDEX "LiteLLM_IdentityEval_model_id_date_key" ON "LiteLLM_IdentityEval"("model_id","date");
