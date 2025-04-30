@@ -52,3 +52,5 @@ pydantic==2.10.2 # proxy + openai req.
 jsonschema==4.22.0 # validating json schema
 websockets==13.1.0 # for realtime API
 ####
+
+evalscope~=0.15.0
