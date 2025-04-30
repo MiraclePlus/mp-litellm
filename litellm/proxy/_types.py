@@ -449,6 +449,7 @@ class LiteLLMRoutes(enum.Enum):
             "/global/spend/end_users",
             "/global/activity",
             "/global/activity/model",
+            "/config/field/info",
         ]
         + spend_tracking_routes
         + key_management_routes

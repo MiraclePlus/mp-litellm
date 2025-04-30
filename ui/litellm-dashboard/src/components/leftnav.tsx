@@ -234,8 +234,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const filteredMenuItems = menuItems.filter((item) => {
     if (internalManageUserRoles.includes(userRole)) {
-      // Internal users can see all items except for the API Keys and Model Hub
-      if (item.key === "1" || item.key === "16") {
+      // Internal users can see all items except for the API Keys, Model Hub, Usage, and logs
+      if (
+        item.key === "1" ||
+        item.key === "16" ||
+        item.key === "4" ||
+        item.key === "15"
+      ) {
         return true;
       }
       return false;
