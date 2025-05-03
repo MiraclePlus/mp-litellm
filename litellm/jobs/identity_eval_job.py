@@ -57,15 +57,15 @@ LIVE_CODE_BENCH = EvalDataset(
     },
 )
 
-USED_DATASET = (
-    AIME24,
-    AIME25,
-    GPQA_DIAMOND,
-    MMLU_PRO_LAW,
-    MMLU_PRO_BUSINESS,
-    MMLU_PRO_PHILOSOPHY,
-    LIVE_CODE_BENCH,
-)
+USED_DATASET = {
+    "AIME24": AIME24,
+    "AIME25": AIME25,
+    "GPQA_DIAMOND": GPQA_DIAMOND,
+    "MMLU_PRO_LAW": MMLU_PRO_LAW,
+    "MMLU_PRO_BUSINESS": MMLU_PRO_BUSINESS,
+    "MMLU_PRO_PHILOSOPHY": MMLU_PRO_PHILOSOPHY,
+    "LIVE_CODE_BENCH": LIVE_CODE_BENCH,
+}
 
 APIURL = ""
 APIKEY = ""
@@ -86,8 +86,8 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
     model_list = {model['litellm_params']['model']: model for model in model_list}
 
     for model_name in model_list:
-        for dataset in USED_DATASET:
-            logger.info(f"开始基准测试模型: {model_name}，数据集: {dataset.dataset_name}")
+        for dataset_key, dataset in USED_DATASET.items():
+            logger.info(f"开始基准测试模型: {model_name}，数据集: {dataset_key}")
 
             try:
                 task_config = TaskConfig(
@@ -113,12 +113,7 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
 
                 rslt = {
                     "model_id": model_name,
-                    "dataset_name": (
-                        f"{dataset.dataset_name}"
-                        if not dataset.dataset_args
-                           or not dataset.dataset_args.get("subset_list")
-                        else f"{dataset.dataset_name}_{'_'.join(dataset.dataset_args['subset_list'])}"
-                    ),  # type: ignore
+                    "dataset_name": dataset_key,  # type: ignore
                     "metric": report.metrics[0].name,
                     "score": report.metrics[0].score,
                     "date": litellm.utils.get_utc_datetime()
@@ -126,14 +121,14 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
 
                 await prisma_client.db.litellm_identityeval.create(rslt)
             except Exception as e:
-                logger.error(f"Error running task for {model_name} on {dataset.dataset_name}: {e}")
+                logger.error(f"Error running task for {model_name} on {dataset_key}: {e}")
                 send_message_to_feishu(
-                    f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
+                    f"Error running task for [{model_name}] on [{dataset_key}]: {e}",
                     webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
                 )
                 await prisma_client.db.litellm_identityeval.create(
-                    {'model_id': model_name, 'dataset_name': dataset.dataset_name, 'metric': 'AveragePass@1',
-                     'score': 0, 'date': litellm.utils.get_utc_datetime()})
+                    {'model_id': model_name, 'dataset_name': dataset_key, 'metric': 'AveragePass@1',
+                     'score': -1, 'date': litellm.utils.get_utc_datetime()})
                 continue
 
 
