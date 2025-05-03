@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import logging
 from dataclasses import dataclass
@@ -72,8 +73,13 @@ CACHE_PATH = ""
 TEMPERATURE = 0.0
 
 
-# 1. 创建一个要执行的任务函数
-async def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient = None):
+async def async_identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient = None):
+    loop = asyncio.get_running_loop()
+    # 将阻塞操作放入线程池
+    await loop.run_in_executor(None, identity_eval_task, llm_router, prisma_client)
+
+
+def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient = None):
     """
     定时获取所有可用的模型名称并记录
 
@@ -122,17 +128,18 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
                 }
                 rslt["date"] = litellm.utils.get_utc_datetime()
 
-                await prisma_client.db.litellm_identityeval.create(rslt)
+                create = prisma_client.db.litellm_identityeval.create(rslt)
+                print(create)
             except Exception as e:
                 print(f"Error running task for {model_name} on {dataset.dataset_name}: {e}")
                 send_message_to_feishu(
                     f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
                     webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
                 )
-                await prisma_client.db.litellm_identityeval.create(
+                identity_eval_create = prisma_client.db.litellm_identityeval.create(
                     {'model_id': model_name, 'dataset_name': dataset.dataset_name, 'metric': 'AveragePass@1',
-                     'score': 0,
-                     'date': litellm.utils.get_utc_datetime()})
+                     'score': 0, 'date': litellm.utils.get_utc_datetime()})
+                print(identity_eval_create)
                 continue
 
 

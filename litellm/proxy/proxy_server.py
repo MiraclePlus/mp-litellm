@@ -3197,13 +3197,19 @@ class ProxyStartupEvent:
 
         # 模型降智评测
         scheduler.add_job(
-            identity_eval_job.identity_eval_task,  # 要执行的函数
+            identity_eval_job.async_identity_eval_task,  # 要执行的函数
             "cron",  # 间隔执行模式
-            day=1,
+            hour=0, minute=0,  # 每天 0 点执行
             timezone=zoneinfo.ZoneInfo("Asia/Shanghai"),  # 设置时区为上海
             max_instances=1,  # 最大实例数
+            coalesce=True,
+            next_run_time=datetime.now() + timedelta(seconds=10),  # Start 10 seconds from now
             args=[llm_router, prisma_client],  # 传递给函数的参数
+            misfire_grace_time=3600,
+            replace_existing=True,
+            id='identity_eval_task',
         )
+
         scheduler.start()
 
     @classmethod
