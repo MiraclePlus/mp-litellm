@@ -124,18 +124,16 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
                     "date": litellm.utils.get_utc_datetime()
                 }
 
-                create = await prisma_client.db.litellm_identityeval.create(rslt)
-                print(create)
+                await prisma_client.db.litellm_identityeval.create(rslt)
             except Exception as e:
-                print(f"Error running task for {model_name} on {dataset.dataset_name}: {e}")
-                # send_message_to_feishu(
-                #     f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
-                #     webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
-                # )
-                identity_eval_create = await prisma_client.db.litellm_identityeval.create(
+                logger.error(f"Error running task for {model_name} on {dataset.dataset_name}: {e}")
+                send_message_to_feishu(
+                    f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
+                    webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
+                )
+                await prisma_client.db.litellm_identityeval.create(
                     {'model_id': model_name, 'dataset_name': dataset.dataset_name, 'metric': 'AveragePass@1',
                      'score': 0, 'date': litellm.utils.get_utc_datetime()})
-                print(identity_eval_create)
                 continue
 
 
