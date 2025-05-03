@@ -427,12 +427,15 @@ model LiteLLM_ManagedFileTable {
 model LiteLLM_IdentityEval{
   id Int @id @default(autoincrement())
   model_id String
+  dataset_key String
   dataset_name String
   metric String
   score Float
-  date DateTime @client.Date // 映射到 DATE
+  subset String
+  num Int
+  date DateTime
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@index([model_id,date])
+  @@index([model_id])
 }
