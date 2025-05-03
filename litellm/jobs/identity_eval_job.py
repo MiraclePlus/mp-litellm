@@ -73,13 +73,7 @@ CACHE_PATH = ""
 TEMPERATURE = 0.0
 
 
-async def async_identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient = None):
-    loop = asyncio.get_running_loop()
-    # 将阻塞操作放入线程池
-    await loop.run_in_executor(None, identity_eval_task, llm_router, prisma_client)
-
-
-def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient = None):
+async def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient = None):
     """
     定时获取所有可用的模型名称并记录
 
@@ -102,7 +96,6 @@ def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient
                     dataset_args=dataset.dataset_args,
                     eval_type=EvalType.SERVICE,
                     api_url="http://localhost/v1",
-                    # api_key="sk-ZY_wnuzes5znMQV31EXRlw", 生产环境的
                     api_key="sk-ZY_wnuzes5znMQV31EXRlw",
                     timeout=3600,
                     eval_batch_size=dataset.eval_concurrency,
@@ -113,7 +106,10 @@ def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient
                     use_cache=TODAY,
                 )
 
-                report = run_task(task_config)[dataset.dataset_name]
+                # 使用run_in_executor来执行阻塞的run_task操作
+                loop = asyncio.get_running_loop()
+                report = await loop.run_in_executor(None, run_task, task_config)
+                report = report[dataset.dataset_name]
 
                 rslt = {
                     "model_id": model_name,
@@ -125,18 +121,18 @@ def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient
                     ),  # type: ignore
                     "metric": report.metrics[0].name,
                     "score": report.metrics[0].score,
+                    "date": litellm.utils.get_utc_datetime()
                 }
-                rslt["date"] = litellm.utils.get_utc_datetime()
 
-                create = prisma_client.db.litellm_identityeval.create(rslt)
+                create = await prisma_client.db.litellm_identityeval.create(rslt)
                 print(create)
             except Exception as e:
                 print(f"Error running task for {model_name} on {dataset.dataset_name}: {e}")
-                send_message_to_feishu(
-                    f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
-                    webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
-                )
-                identity_eval_create = prisma_client.db.litellm_identityeval.create(
+                # send_message_to_feishu(
+                #     f"Error running task for [{model_name}] on [{dataset.dataset_name}]: {e}",
+                #     webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
+                # )
+                identity_eval_create = await prisma_client.db.litellm_identityeval.create(
                     {'model_id': model_name, 'dataset_name': dataset.dataset_name, 'metric': 'AveragePass@1',
                      'score': 0, 'date': litellm.utils.get_utc_datetime()})
                 print(identity_eval_create)

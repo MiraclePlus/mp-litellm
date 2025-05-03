@@ -3197,7 +3197,7 @@ class ProxyStartupEvent:
 
         # 模型降智评测
         scheduler.add_job(
-            identity_eval_job.async_identity_eval_task,  # 要执行的函数
+            identity_eval_job.identity_eval_task,  # 要执行的函数
             "cron",  # 间隔执行模式
             hour=0, minute=0,  # 每天 0 点执行
             timezone=zoneinfo.ZoneInfo("Asia/Shanghai"),  # 设置时区为上海
