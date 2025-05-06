@@ -433,7 +433,7 @@ model LiteLLM_IdentityEval{
   score Float
   subset String
   num Int
-  date DateTime
+  date DateTime @client.Date // 映射到 DATE
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 

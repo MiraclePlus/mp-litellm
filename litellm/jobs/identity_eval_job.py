@@ -32,7 +32,7 @@ class EvalDataset:
 AIME24 = EvalDataset("aime24", {"aime24": {"few_shot_num": 3}})
 AIME25 = EvalDataset("aime25", {"aime25": {"few_shot_num": 3}})
 GPQA_DIAMOND = EvalDataset(
-    "gpqa_diamond",
+    "gpqa",
     {"gpqa": {"subset_list": ["gpqa_diamond"], "few_shot_num": 3}},
 )
 MMLU_PRO_LAW = EvalDataset(
@@ -62,7 +62,7 @@ LIVE_CODE_BENCH = EvalDataset(
 USED_DATASET = {
     "AIME24": AIME24,
     "AIME25": AIME25,
-    # "GPQA_DIAMOND": GPQA_DIAMOND,
+    "GPQA_DIAMOND": GPQA_DIAMOND,
     "MMLU_PRO_LAW": MMLU_PRO_LAW,
     "MMLU_PRO_BUSINESS": MMLU_PRO_BUSINESS,
     "MMLU_PRO_PHILOSOPHY": MMLU_PRO_PHILOSOPHY,
@@ -119,7 +119,7 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
                 rslt = {
                     "model_id": model_name,
                     "dataset_key": dataset_key,
-                    "dataset_name": dataset.dataset_name,  # type: ignore
+                    "dataset_name": dataset.dataset_name,
                     "metric": report.metrics[0].name,
                     "score": report.metrics[0].score,
                     "subset": ",".join(report.metrics[0].categories[0].name),
@@ -132,11 +132,19 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
                 logger.error(f"Error running task for {model_name} on {dataset_key}: {e}")
                 send_message_to_feishu(
                     f"Error running task for [{model_name}] on [{dataset_key}]: {e}",
-                    webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/139459dc-960e-4170-a356-9e1935c1e24e",
+                    webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/e7f41a9a-5207-4c88-93c6-ef14b4c3aae3",
                 )
-                # await prisma_client.db.litellm_identityeval.create(
-                #     {'model_id': model_name, 'dataset_name': dataset_key, 'metric': 'AveragePass@1',
-                #      'score': -1, 'date': litellm.utils.get_utc_datetime()})
+                await prisma_client.db.litellm_identityeval.create(
+                    {
+                     'model_id': model_name, 
+                     "dataset_key": dataset_key,
+                     "dataset_name": dataset.dataset_name,
+                     'metric': '',  
+                     'score': -1, 
+                     'subset': '',
+                     'num': 0,
+                     'date': litellm.utils.get_utc_datetime()
+                     })
                 continue
 
 
