@@ -185,7 +185,8 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
         formatter: function (params: any) {
           let tooltip = `日期: ${params[0].axisValue} <br/>`;
           params.forEach((param: any) => {
-            tooltip += `${param.seriesName}: ${param.value !== null && param.value !== undefined ? (param.value * 100).toFixed(1) + "%" : "N/A"}<br/>`;
+            // tooltip += `${param.seriesName}: ${param.value !== null && param.value !== undefined ? (param.value * 100).toFixed(1) + "%" : "N/A"}<br/>`;
+            tooltip += `${param.seriesName}: ${param.value !== null && param.value !== undefined ? param.value : "N/A"}<br/>`;
           });
           return tooltip;
         },
@@ -217,7 +218,8 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
         max: 1,
         axisLabel: {
           formatter: function (value: number) {
-            return value * 100 + "%";
+            // return value * 100 + "%";
+            return value;
           },
         },
       },
