@@ -21,12 +21,16 @@ import BudgetPanel from "@/components/budgets/budget_panel";
 import SpendLogsTable from "@/components/view_logs";
 import ModelHub from "@/components/model_hub";
 import NewUsagePage from "@/components/new_usage";
+import IdentityEvalChart from "@/components/identity_eval_chart";
 import APIRef from "@/components/api_ref";
 import ChatUI from "@/components/chat_ui";
 import Sidebar from "@/components/leftnav";
 import Usage from "@/components/usage";
 import CacheDashboard from "@/components/cache_dashboard";
-import { proxyBaseUrl, setGlobalLitellmHeaderName } from "@/components/networking";
+import {
+  proxyBaseUrl,
+  setGlobalLitellmHeaderName,
+} from "@/components/networking";
 import { Organization } from "@/components/networking";
 import GuardrailsPanel from "@/components/guardrails";
 import TransformRequestPanel from "@/components/transform_request";
@@ -35,7 +39,7 @@ import { fetchTeams } from "@/components/common_components/fetch_teams";
 import MCPToolsViewer from "@/components/mcp_tools";
 import TagManagement from "@/components/tag_management";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
-import { cx } from '@/lib/cva.config';
+import { cx } from "@/lib/cva.config";
 
 function getCookie(name: string) {
   const cookieValue = document.cookie
@@ -87,7 +91,7 @@ function LoadingScreen() {
       <div className="text-lg font-medium py-2 pr-4 border-r border-r-gray-200">
         🚅 LiteLLM
       </div>
-      
+
       <div className="flex items-center justify-center gap-2">
         <UiLoadingSpinner className="size-4" />
         <span className="text-gray-600 text-sm">Loading...</span>
@@ -139,7 +143,8 @@ export default function CreateKeyPage() {
 
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  const redirectToLogin = authLoading === false && token === null && invitation_id === null;
+  const redirectToLogin =
+    authLoading === false && token === null && invitation_id === null;
 
   useEffect(() => {
     const token = getCookie("token");
@@ -149,9 +154,9 @@ export default function CreateKeyPage() {
 
   useEffect(() => {
     if (redirectToLogin) {
-      window.location.href = (proxyBaseUrl || "") + "/sso/key/generate"
+      window.location.href = (proxyBaseUrl || "") + "/sso/key/generate";
     }
-  }, [redirectToLogin])
+  }, [redirectToLogin]);
 
   useEffect(() => {
     if (!token) {
@@ -168,7 +173,7 @@ export default function CreateKeyPage() {
       setAccessToken(decoded.key);
 
       setDisabledPersonalKeyCreation(
-        decoded.disabled_non_admin_personal_key_creation,
+        decoded.disabled_non_admin_personal_key_creation
       );
 
       // check if userRole is defined
@@ -191,7 +196,7 @@ export default function CreateKeyPage() {
 
       if (decoded.login_method) {
         setShowSSOBanner(
-          decoded.login_method == "username_password" ? true : false,
+          decoded.login_method == "username_password" ? true : false
         );
       } else {
         console.log(`User Email is not set ${decoded}`);
@@ -210,7 +215,7 @@ export default function CreateKeyPage() {
       }
     }
   }, [token]);
-  
+
   useEffect(() => {
     if (accessToken && userID && userRole) {
       fetchUserModels(userID, userRole, accessToken, setUserModels);
@@ -224,7 +229,7 @@ export default function CreateKeyPage() {
   }, [accessToken, userID, userRole]);
 
   if (authLoading || redirectToLogin) {
-    return <LoadingScreen />
+    return <LoadingScreen />;
   }
 
   return (
@@ -349,9 +354,9 @@ export default function CreateKeyPage() {
                 <BudgetPanel accessToken={accessToken} />
               ) : page == "guardrails" ? (
                 <GuardrailsPanel accessToken={accessToken} />
-              ): page == "transform-request" ? (
+              ) : page == "transform-request" ? (
                 <TransformRequestPanel accessToken={accessToken} />
-              ): page == "general-settings" ? (
+              ) : page == "general-settings" ? (
                 <GeneralSettings
                   userID={userID}
                   userRole={userRole}
@@ -385,7 +390,7 @@ export default function CreateKeyPage() {
                   userRole={userRole}
                   token={token}
                   accessToken={accessToken}
-                  allTeams={teams as Team[] ?? []}
+                  allTeams={(teams as Team[]) ?? []}
                 />
               ) : page == "mcp-tools" ? (
                 <MCPToolsViewer
@@ -404,10 +409,11 @@ export default function CreateKeyPage() {
                   userID={userID}
                   userRole={userRole}
                   accessToken={accessToken}
-                  teams={teams as Team[] ?? []}
+                  teams={(teams as Team[]) ?? []}
                 />
-              ) : 
-              (
+              ) : page == "identity_eval_chart" ? (
+                <IdentityEvalChart accessToken={accessToken} />
+              ) : (
                 <Usage
                   userID={userID}
                   userRole={userRole}

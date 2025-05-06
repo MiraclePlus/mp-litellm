@@ -209,6 +209,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     },
+    {
+      key: "100",
+      page: "identity_eval_chart",
+      label: "LLM Test Statistics",
+      icon: <BarChartOutlined />,
+    },
   ];
   // Find the menu item that matches the default page, including in submenus
   const findMenuItemKey = (page: string): string => {
@@ -236,7 +242,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         item.key === "16" ||
         item.key === "4" ||
         item.key === "15" ||
-        item.key === "12"
+        item.key === "12" ||
+        item.key === "100"
       ) {
         return true;
       }
