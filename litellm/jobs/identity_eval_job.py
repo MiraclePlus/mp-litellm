@@ -2,12 +2,13 @@ import asyncio
 import datetime
 import logging
 from dataclasses import dataclass
+from json import dumps
 from typing import Optional, Dict, Union
-import gc
-import psutil, os
 
+import requests
 from evalscope import TaskConfig, run_task
 from evalscope.constants import EvalType
+from requests.exceptions import RequestException
 
 import litellm
 from litellm import Router
@@ -73,7 +74,9 @@ CACHE_PATH = "evalscope/"
 TEMPERATURE = 0.0
 
 
-async def identity_eval_task(llm_router: Optional[Router], prisma_client: PrismaClient = None):
+async def identity_eval_task(
+        llm_router: Optional[Router], prisma_client: PrismaClient = None
+):
     """
     定时获取所有可用的模型名称并记录
 
@@ -81,17 +84,28 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
         llm_router: LiteLLM Router实例，用于获取模型列表
         prisma_client: 数据库客户端，如果需要将结果存储到数据库
     """
+
     # 获取所有模型名称
-    model_list = llm_router.get_model_list()
-    model_list = {model['litellm_params']['model']: model for model in model_list}
+    model_list = llm_router.model_names
 
-    for model_name in model_list:
+    # 创建信号量，限制最多同时运行3个协程
+    semaphore = asyncio.Semaphore(3)
 
-        # 临时跳过openai/gpt-4.1
-        if "openai/" in model_name:
-            continue
+    # 创建任务
+    tasks = [worker(model_name, USED_DATASET, prisma_client, semaphore) for model_name in model_list]
 
-        for dataset_key, dataset in USED_DATASET.items():
+    # 并发执行所有任务
+    await asyncio.gather(*tasks)
+
+
+async def worker(
+        model_name: str,
+        dataset: dict[str, EvalDataset],
+        prisma_client: PrismaClient = None,
+        semaphore: asyncio.Semaphore = None,
+):
+    async with semaphore:  # 获取信号量，如果达到限制会阻塞
+        for dataset_key, dataset in dataset.items():
             logger.info(f"开始基准测试模型: {model_name}，数据集: {dataset_key}")
 
             try:
@@ -111,9 +125,7 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
                     use_cache=TODAY,
                 )
 
-                # 使用run_in_executor来执行阻塞的run_task操作
-                loop = asyncio.get_running_loop()
-                report = await loop.run_in_executor(None, run_task, task_config)
+                report = run_task(task_config)
                 report = report[dataset.dataset_name]
 
                 rslt = {
@@ -124,7 +136,7 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
                     "score": report.metrics[0].score,
                     "subset": ",".join(report.metrics[0].categories[0].name),
                     "num": report.metrics[0].num,
-                    "date": litellm.utils.get_utc_datetime()
+                    "date": litellm.utils.get_utc_datetime(),
                 }
 
                 await prisma_client.db.litellm_identityeval.create(rslt)
@@ -136,23 +148,21 @@ async def identity_eval_task(llm_router: Optional[Router], prisma_client: Prisma
                 )
                 await prisma_client.db.litellm_identityeval.create(
                     {
-                     'model_id': model_name, 
-                     "dataset_key": dataset_key,
-                     "dataset_name": dataset.dataset_name,
-                     'metric': '',  
-                     'score': -1, 
-                     'subset': '',
-                     'num': 0,
-                     'date': litellm.utils.get_utc_datetime()
-                     })
+                        "model_id": model_name,
+                        "dataset_key": dataset_key,
+                        "dataset_name": dataset.dataset_name,
+                        "metric": "",
+                        "score": -1,
+                        "subset": "",
+                        "num": 0,
+                        "date": litellm.utils.get_utc_datetime(),
+                    }
+                )
                 continue
 
 
 def send_message_to_feishu(param, webhook_url):
     # Send a message to Feishu
-    import requests
-    from requests.exceptions import RequestException
-    from json import dumps
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
