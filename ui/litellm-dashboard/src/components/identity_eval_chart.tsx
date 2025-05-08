@@ -54,9 +54,11 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDataset, setSelectedDataset] = useState<string>("all");
-  const [selectedModel, setSelectedModel] = useState<string>("all");
-  const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.ECharts | null>(null);
+  const [modelCharts, setModelCharts] = useState<{
+    [modelId: string]: React.RefObject<HTMLDivElement>;
+  }>({});
+  const chartInstances = useRef<{ [modelId: string]: echarts.ECharts }>({});
+
   // Fetch eval data
   useEffect(() => {
     const fetchEvalData = async () => {
@@ -79,15 +81,36 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
     fetchEvalData();
   }, [accessToken]);
 
-  // Process data for the chart based on filters
-  const processChartData = () => {
-    // Initialize data structure
+  // Create refs for each model's chart
+  useEffect(() => {
+    if (Object.keys(evalData).length === 0) return;
+
+    // Get all unique model IDs
+    const allModelIds = new Set<string>();
+    Object.values(evalData).forEach((results) => {
+      results.forEach((result) => {
+        allModelIds.add(result.model_id);
+      });
+    });
+
+    // Create refs for each model
+    const newModelCharts: {
+      [modelId: string]: React.RefObject<HTMLDivElement>;
+    } = {};
+    allModelIds.forEach((modelId) => {
+      newModelCharts[modelId] = React.createRef<HTMLDivElement>();
+    });
+
+    setModelCharts(newModelCharts);
+  }, [evalData]);
+
+  // Process data for each model's chart
+  const processChartData = (modelId: string) => {
     const chartData: {
       dates: string[];
       series: {
         name: string;
         data: number[];
-        modelId: string;
         datasetKey: string;
       }[];
     } = {
@@ -106,31 +129,28 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
     );
     chartData.dates = sortedDates;
 
-    // Create a mapping for all model+dataset combinations
+    // Create a mapping for dataset combinations for this model
     const seriesMap = new Map<
       string,
       {
         name: string;
         data: number[];
-        modelId: string;
         datasetKey: string;
       }
     >();
 
-    // Traverse all data to find unique series
+    // Traverse all data to find unique series for this model
     sortedDates.forEach((date) => {
       evalData[date].forEach((result) => {
-        // Apply filters
+        // Only process data for the specified model ID
         if (
-          (selectedModel === "all" || result.model_id === selectedModel) &&
+          result.model_id === modelId &&
           (selectedDataset === "all" || result.dataset_key === selectedDataset)
         ) {
-          const seriesKey = `${result.model_id} - ${result.dataset_key}`;
-          if (!seriesMap.has(seriesKey)) {
-            seriesMap.set(seriesKey, {
-              name: seriesKey,
+          if (!seriesMap.has(result.dataset_key)) {
+            seriesMap.set(result.dataset_key, {
+              name: result.dataset_key,
               data: Array(sortedDates.length).fill(null),
-              modelId: result.model_id,
               datasetKey: result.dataset_key,
             });
           }
@@ -142,11 +162,10 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
     sortedDates.forEach((date, dateIndex) => {
       evalData[date].forEach((result) => {
         if (
-          (selectedModel === "all" || result.model_id === selectedModel) &&
+          result.model_id === modelId &&
           (selectedDataset === "all" || result.dataset_key === selectedDataset)
         ) {
-          const seriesKey = `${result.model_id} - ${result.dataset_key}`;
-          const seriesData = seriesMap.get(seriesKey);
+          const seriesData = seriesMap.get(result.dataset_key);
           if (seriesData) {
             seriesData.data[dateIndex] = result.score;
           }
@@ -158,98 +177,103 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
     return chartData;
   };
 
-  // Initialize and update chart
+  // Initialize and update charts
   useEffect(() => {
-    if (!chartRef.current) return;
+    if (Object.keys(modelCharts).length === 0) return;
 
-    // Initialize chart if not already done
-    if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current);
-    }
+    // Create or update chart for each model
+    Object.entries(modelCharts).forEach(([modelId, chartRef]) => {
+      if (!chartRef.current) return;
+
+      // Initialize chart if not already done
+      if (!chartInstances.current[modelId]) {
+        chartInstances.current[modelId] = echarts.init(chartRef.current);
+      }
+
+      // Process data and update chart
+      const chartData = processChartData(modelId);
+      const option = {
+        title: {
+          text: `模型 ${modelId} 评估分数趋势`,
+          left: "center",
+        },
+        tooltip: {
+          trigger: "axis",
+          formatter: function (params: any) {
+            let tooltip = `日期: ${params[0].axisValue} <br/>`;
+            params.forEach((param: any) => {
+              tooltip += `${param.seriesName}: ${param.value !== null && param.value !== undefined ? param.value : "N/A"}<br/>`;
+            });
+            return tooltip;
+          },
+        },
+        legend: {
+          data: chartData.series.map((s) => s.name),
+          type: "scroll",
+          orient: "horizontal",
+          bottom: 0,
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "15%",
+          top: "15%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "category",
+          boundaryGap: false,
+          data: chartData.dates.map((date) => {
+            const d = new Date(date);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+          }),
+        },
+        yAxis: {
+          type: "value",
+          min: 0,
+          max: 1,
+          axisLabel: {
+            formatter: function (value: number) {
+              return value;
+            },
+          },
+        },
+        series: chartData.series.map((series) => ({
+          name: series.name,
+          type: "line",
+          data: series.data,
+          smooth: true,
+          connectNulls: true,
+          symbol: "circle",
+          symbolSize: 6,
+          lineStyle: {
+            width: 2,
+          },
+        })),
+      };
+
+      chartInstances.current[modelId].setOption(option);
+    });
 
     // Resize handler
     const handleResize = () => {
-      chartInstance.current?.resize();
+      Object.values(chartInstances.current).forEach((chart) => {
+        chart?.resize();
+      });
     };
     window.addEventListener("resize", handleResize);
-
-    // Process data and update chart
-    const chartData = processChartData();
-    const option = {
-      title: {
-        text: "模型评估分数趋势",
-        left: "center",
-      },
-      tooltip: {
-        trigger: "axis",
-        formatter: function (params: any) {
-          let tooltip = `日期: ${params[0].axisValue} <br/>`;
-          params.forEach((param: any) => {
-            // tooltip += `${param.seriesName}: ${param.value !== null && param.value !== undefined ? (param.value * 100).toFixed(1) + "%" : "N/A"}<br/>`;
-            tooltip += `${param.seriesName}: ${param.value !== null && param.value !== undefined ? param.value : "N/A"}<br/>`;
-          });
-          return tooltip;
-        },
-      },
-      legend: {
-        data: chartData.series.map((s) => s.name),
-        type: "scroll",
-        orient: "horizontal",
-        bottom: 0,
-      },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "15%",
-        top: "15%",
-        containLabel: true,
-      },
-      xAxis: {
-        type: "category",
-        boundaryGap: false,
-        data: chartData.dates.map((date) => {
-          const d = new Date(date);
-          return `${d.getMonth() + 1}/${d.getDate()}`;
-        }),
-      },
-      yAxis: {
-        type: "value",
-        min: 0,
-        max: 1,
-        axisLabel: {
-          formatter: function (value: number) {
-            // return value * 100 + "%";
-            return value;
-          },
-        },
-      },
-      series: chartData.series.map((series) => ({
-        name: series.name,
-        type: "line",
-        data: series.data,
-        smooth: true,
-        connectNulls: true,
-        symbol: "circle",
-        symbolSize: 6,
-        lineStyle: {
-          width: 2,
-        },
-      })),
-    };
-
-    chartInstance.current.setOption(option);
 
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [evalData, selectedModel, selectedDataset]);
+  }, [evalData, selectedDataset, modelCharts]);
 
   // Clean up on unmount
   useEffect(() => {
     return () => {
-      if (chartInstance.current) {
-        chartInstance.current.dispose();
-      }
+      Object.values(chartInstances.current).forEach((chart) => {
+        chart?.dispose();
+      });
     };
   }, []);
 
@@ -266,14 +290,17 @@ const IdentityEvalChart: React.FC<IdentityEvalChartProps> = ({
       </Card>
     );
 
+  // Render dataset filter and charts for each model
   return (
     <Card>
-      <Title> </Title>
-      <Grid numItems={1} className="gap-4">
-        <Col>
+      <Title className="mb-4">模型评估数据</Title>
+
+      {Object.entries(modelCharts).map(([modelId, chartRef]) => (
+        <Card key={modelId} className="mb-4">
+          <Title>{modelId}</Title>
           <div ref={chartRef} style={{ height: "400px", width: "100%" }} />
-        </Col>
-      </Grid>
+        </Card>
+      ))}
     </Card>
   );
 };
