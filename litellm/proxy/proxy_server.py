@@ -167,6 +167,7 @@ from litellm.proxy.auth.user_api_key_auth import (
 )
 from litellm.proxy.batches_endpoints.endpoints import router as batches_router
 from litellm.proxy.identity_eval_endpoints.endpoints import router as identity_eval_router
+from litellm.proxy.identity_eval_endpoints.model_endpoints import router as model_endpoints_router
 
 ## Import All Misc routes here ##
 from litellm.proxy.caching_routes import router as caching_router
@@ -8221,3 +8222,4 @@ app.include_router(team_callback_router)
 app.include_router(budget_management_router)
 app.include_router(model_management_router)
 app.include_router(tag_management_router)
+app.include_router(model_endpoints_router)

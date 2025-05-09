@@ -22,6 +22,7 @@ import SpendLogsTable from "@/components/view_logs";
 import ModelHub from "@/components/model_hub";
 import NewUsagePage from "@/components/new_usage";
 import IdentityEvalChart from "@/components/identity_eval_chart";
+import EvalModels from "@/components/eval_models";
 import APIRef from "@/components/api_ref";
 import ChatUI from "@/components/chat_ui";
 import Sidebar from "@/components/leftnav";
@@ -413,6 +414,8 @@ export default function CreateKeyPage() {
                 />
               ) : page == "identity_eval_chart" ? (
                 <IdentityEvalChart accessToken={accessToken} />
+              ) : page == "eval_models" ? (
+                <EvalModels accessToken={accessToken} />
               ) : (
                 <Usage
                   userID={userID}

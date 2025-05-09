@@ -4770,3 +4770,63 @@ export const identityEvalCall = async (
     throw error;
   }
 };
+
+export const evalModelsCall = async (accessToken: string | null) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/v1/eval_models`
+      : `/v1/eval_models`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Network response was not ok");
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error("Failed to get eval models:", error);
+    throw error;
+  }
+};
+
+export const evalModelsUpdateCall = async (
+  accessToken: string | null,
+  modelsData: any[]
+) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/v1/eval_models/set`
+      : `/v1/eval_models/set`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(modelsData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Network response was not ok");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to update eval models:", error);
+    throw error;
+  }
+};

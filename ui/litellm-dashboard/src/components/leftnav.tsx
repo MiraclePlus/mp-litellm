@@ -210,6 +210,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
+      key: "90",
+      page: "eval_models",
+      label: "Test Models",
+      icon: <AppstoreOutlined />,
+    },
+    {
       key: "100",
       page: "identity_eval_chart",
       label: "LLM Test Statistics",
