@@ -1,8 +1,10 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import datetime
 import logging
 from dataclasses import dataclass
 from json import dumps
+import os
 from typing import Optional, Dict, Union
 
 import requests
@@ -89,7 +91,7 @@ async def identity_eval_task(
     model_list = llm_router.model_names
 
     # 创建信号量，限制最多同时运行3个协程
-    semaphore = asyncio.Semaphore(3)
+    semaphore = asyncio.Semaphore(6)
 
     # 创建任务
     tasks = [worker(model_name, USED_DATASET, prisma_client, semaphore) for model_name in model_list]
@@ -97,6 +99,7 @@ async def identity_eval_task(
     # 并发执行所有任务
     await asyncio.gather(*tasks)
 
+    logger.info("所有任务完成")
 
 async def worker(
         model_name: str,
@@ -108,44 +111,28 @@ async def worker(
         for dataset_key, dataset in dataset.items():
             logger.info(f"开始基准测试模型: {model_name}，数据集: {dataset_key}")
 
-            try:
-                task_config = TaskConfig(
-                    model=model_name,
-                    datasets=[dataset.dataset_name],
-                    dataset_args=dataset.dataset_args,
-                    eval_type=EvalType.SERVICE,
-                    api_url="http://localhost/v1",
-                    api_key="sk-ZY_wnuzes5znMQV31EXRlw",
-                    timeout=3600,
-                    eval_batch_size=dataset.eval_concurrency,
-                    limit=dataset.dataset_limit,
-                    generation_config={"temperature": TEMPERATURE, "do_sample": True},
-                    dataset_dir=CACHE_PATH,
-                    judge_worker_num=1,  # > 1 could run into deadlock
-                    use_cache=TODAY,
-                )
+            task_config = TaskConfig(
+                model=model_name,
+                datasets=[dataset.dataset_name],
+                dataset_args=dataset.dataset_args,
+                eval_type=EvalType.SERVICE,
+                api_url="http://localhost/v1",
+                api_key="sk-ZY_wnuzes5znMQV31EXRlw",
+                timeout=3600,
+                eval_batch_size=dataset.eval_concurrency,
+                limit=dataset.dataset_limit,
+                generation_config={"temperature": TEMPERATURE, "do_sample": True},
+                dataset_dir=CACHE_PATH,
+                judge_worker_num=1,  # > 1 could run into deadlock
+                use_cache=TODAY,
+            )
 
-                report = run_task(task_config)
-                report = report[dataset.dataset_name]
-
-                rslt = {
-                    "model_id": model_name,
-                    "dataset_key": dataset_key,
-                    "dataset_name": dataset.dataset_name,
-                    "metric": report.metrics[0].name,
-                    "score": report.metrics[0].score,
-                    "subset": ",".join(report.metrics[0].categories[0].name),
-                    "num": report.metrics[0].num,
-                    "date": litellm.utils.get_utc_datetime(),
-                }
-
-                await prisma_client.db.litellm_identityeval.create(rslt)
-            except Exception as e:
-                logger.error(f"Error running task for {model_name} on {dataset_key}: {e}")
-                send_message_to_feishu(
-                    f"Error running task for [{model_name}] on [{dataset_key}]: {e}",
-                    webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/e7f41a9a-5207-4c88-93c6-ef14b4c3aae3",
-                )
+            # 获取事件循环
+            loop = asyncio.get_running_loop()
+            # 使用run_in_executor来执行阻塞的run_task操作
+            report = await loop.run_in_executor(None, sync_run_task, task_config,dataset.dataset_name,model_name,dataset_key)
+            
+            if report is None:
                 await prisma_client.db.litellm_identityeval.create(
                     {
                         "model_id": model_name,
@@ -158,7 +145,32 @@ async def worker(
                         "date": litellm.utils.get_utc_datetime(),
                     }
                 )
-                continue
+            else:
+                await prisma_client.db.litellm_identityeval.create({
+                    "model_id": model_name,
+                    "dataset_key": dataset_key,
+                    "dataset_name": dataset.dataset_name,
+                    "metric": report.metrics[0].name,
+                    "score": report.metrics[0].score,
+                    "subset": ",".join(report.metrics[0].categories[0].name),
+                    "num": report.metrics[0].num,
+                    "date": litellm.utils.get_utc_datetime(),
+                })
+
+            logger.info(f"基准测试模型: {model_name}，数据集: {dataset_key}，完成")
+
+def sync_run_task(task_config,dataset_name,model_name,dataset_key):
+    try:
+        report = run_task(task_config)
+        report = report[dataset_name]
+        return report
+    except Exception as e:
+        logger.error(f"Error running task for {model_name} on {dataset_key}: {e}")
+        send_message_to_feishu(
+            f"Error running task for [{model_name}] on [{dataset_key}]: {e}",
+            webhook_url="https://open.feishu.cn/open-apis/bot/v2/hook/52d1469f-1fed-40ee-aa7b-39df5159c945",
+        )
+        return None
 
 
 def send_message_to_feishu(param, webhook_url):

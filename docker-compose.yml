@@ -47,6 +47,15 @@ services:
       timeout: 5s
       retries: 10
   
+  redis:
+    image: 'bitnami/redis:latest'
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/bitnami
+    environment:
+      - REDIS_PASSWORD=scWl4hHQ4umR7j3K
+
   prometheus:
     image: prom/prometheus
     volumes:
@@ -65,4 +74,5 @@ volumes:
     driver: local
   postgres_data:
     name: litellm_postgres_data  # Named volume for Postgres data persistence
-
+  redis_data:
+    name: litellm_redis_data
