@@ -2,17 +2,11 @@
 Unified /v1/messages endpoint - (Anthropic Spec)
 """
 
-from datetime import datetime
-import json
-from typing import List, Dict, Any, Optional
-
-from fastapi import APIRouter, HTTPException, Request, Response, Body, Depends
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, Request, Response, Body
 
 from litellm._logging import verbose_proxy_logger
 from litellm.proxy._types import *
 from litellm.proxy.utils import handle_exception_on_proxy
-from litellm.proxy.proxy_server import user_api_key_auth
 
 router = APIRouter()
 

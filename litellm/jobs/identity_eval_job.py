@@ -1,10 +1,9 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import datetime
+import json
 import logging
 from dataclasses import dataclass
 from json import dumps
-import os
 from typing import Optional, Dict, Union
 
 import requests
@@ -13,7 +12,6 @@ from evalscope.constants import EvalType
 from requests.exceptions import RequestException
 
 import litellm
-from litellm import Router
 from litellm.proxy.utils import PrismaClient
 
 # 设置日志
@@ -32,44 +30,36 @@ class EvalDataset:
     eval_cache: str = f"{TODAY}"
 
 
-AIME24 = EvalDataset("aime24", {"aime24": {"few_shot_num": 3}})
-AIME25 = EvalDataset("aime25", {"aime25": {"few_shot_num": 3}})
-GPQA_DIAMOND = EvalDataset(
-    "gpqa",
-    {"gpqa": {"subset_list": ["gpqa_diamond"], "few_shot_num": 3}},
-)
-MMLU_PRO_LAW = EvalDataset(
-    "mmlu_pro", {"mmlu_pro": {"subset_list": ["law"], "few_shot_num": 3}}
-)
-MMLU_PRO_BUSINESS = EvalDataset(
-    "mmlu_pro", {"mmlu_pro": {"subset_list": ["business"], "few_shot_num": 3}}
-)
-MMLU_PRO_PHILOSOPHY = EvalDataset(
-    "mmlu_pro", {"mmlu_pro": {"subset_list": ["philosophy"], "few_shot_num": 3}}
-)
-LIVE_CODE_BENCH = EvalDataset(
-    "live_code_bench",
-    {
-        "live_code_bench": {
-            "subset_list": ["release_latest"],
-            "extra_params": {
-                "start_date": "2024-11-28",
-                "end_date": "2025-01-01",
-            },
-            "filters": {"remove_until": "</think>"},
-            "few_shot_num": 3,
-        }
-    },
-)
-
 USED_DATASET = {
-    "AIME24": AIME24,
-    "AIME25": AIME25,
-    "GPQA_DIAMOND": GPQA_DIAMOND,
-    "MMLU_PRO_LAW": MMLU_PRO_LAW,
-    "MMLU_PRO_BUSINESS": MMLU_PRO_BUSINESS,
-    "MMLU_PRO_PHILOSOPHY": MMLU_PRO_PHILOSOPHY,
-    "LIVE_CODE_BENCH": LIVE_CODE_BENCH,
+    "AIME24": EvalDataset("aime24", {"aime24": {"few_shot_num": 3}}),
+    "AIME25": EvalDataset("aime25", {"aime25": {"few_shot_num": 3}}),
+    "GPQA_DIAMOND": EvalDataset(
+        "gpqa",
+        {"gpqa": {"subset_list": ["gpqa_diamond"], "few_shot_num": 3}},
+    ),
+    "MMLU_PRO_LAW": EvalDataset(
+        "mmlu_pro", {"mmlu_pro": {"subset_list": ["law"], "few_shot_num": 3}}
+    ),
+    "MMLU_PRO_BUSINESS": EvalDataset(
+        "mmlu_pro", {"mmlu_pro": {"subset_list": ["business"], "few_shot_num": 3}}
+    ),
+    "MMLU_PRO_PHILOSOPHY": EvalDataset(
+        "mmlu_pro", {"mmlu_pro": {"subset_list": ["philosophy"], "few_shot_num": 3}}
+    ),
+    "LIVE_CODE_BENCH": EvalDataset(
+        "live_code_bench",
+        {
+            "live_code_bench": {
+                "subset_list": ["release_latest"],
+                "extra_params": {
+                    "start_date": "2024-11-28",
+                    "end_date": "2025-01-01",
+                },
+                "filters": {"remove_until": "</think>"},
+                "few_shot_num": 3,
+            }
+        },
+    ),
 }
 
 CACHE_PATH = "evalscope/"
@@ -77,7 +67,7 @@ TEMPERATURE = 0.0
 
 
 async def identity_eval_task(
-        llm_router: Optional[Router], prisma_client: PrismaClient = None
+        prisma_client: PrismaClient = None
 ):
     """
     定时获取所有可用的模型名称并记录
@@ -87,19 +77,37 @@ async def identity_eval_task(
         prisma_client: 数据库客户端，如果需要将结果存储到数据库
     """
 
-    # 获取所有模型名称
-    model_list = llm_router.model_names
+    model_strs = litellm.cache.cache.redis_client.get("identity_eval_models")
+    if model_strs:
+        models = json.loads(model_strs)
+        logger.debug(f"从Redis读取到identity_eval_models数据: {models}")
 
-    # 创建信号量，限制最多同时运行3个协程
-    semaphore = asyncio.Semaphore(6)
+        # 创建信号量，限制最多同时运行3个协程
+        semaphore = asyncio.Semaphore(6)
 
-    # 创建任务
-    tasks = [worker(model_name, USED_DATASET, prisma_client, semaphore) for model_name in model_list]
+        # 创建任务
+        tasks = []
+        for model in models:
+            dataset_keys = model["dataset_keys"]
+            # 过滤出models中'dataset_keys'长度大于0的模型
+            if len(dataset_keys) > 0:
+                model_name = model["model_id"]
+                # 过滤出dataset_keys中存在的USED_DATASET中的数据集
+                datasets = {}
+                for dataset_key in dataset_keys:
+                    if dataset_key in USED_DATASET:
+                        datasets[dataset_key] = USED_DATASET[dataset_key]
+                tasks.append(worker(model_name, datasets, prisma_client, semaphore))
 
-    # 并发执行所有任务
-    await asyncio.gather(*tasks)
+        if not tasks:
+            logger.info("没有可用的模型或数据集，跳过基准测试")
+            return
 
-    logger.info("所有任务完成")
+        # 并发执行所有任务
+        await asyncio.gather(*tasks)
+
+        logger.info("所有任务完成")
+
 
 async def worker(
         model_name: str,
@@ -130,8 +138,9 @@ async def worker(
             # 获取事件循环
             loop = asyncio.get_running_loop()
             # 使用run_in_executor来执行阻塞的run_task操作
-            report = await loop.run_in_executor(None, sync_run_task, task_config,dataset.dataset_name,model_name,dataset_key)
-            
+            report = await loop.run_in_executor(None, sync_run_task, task_config, dataset.dataset_name, model_name,
+                                                dataset_key)
+
             if report is None:
                 await prisma_client.db.litellm_identityeval.create(
                     {
@@ -159,7 +168,8 @@ async def worker(
 
             logger.info(f"基准测试模型: {model_name}，数据集: {dataset_key}，完成")
 
-def sync_run_task(task_config,dataset_name,model_name,dataset_key):
+
+def sync_run_task(task_config, dataset_name, model_name, dataset_key):
     try:
         report = run_task(task_config)
         report = report[dataset_name]

@@ -3205,7 +3205,7 @@ class ProxyStartupEvent:
             max_instances=1,  # 最大实例数
             coalesce=True,
             # next_run_time=datetime.now() + timedelta(seconds=10),  # Start 10 seconds from now
-            args=[llm_router, prisma_client],  # 传递给函数的参数
+            args=[prisma_client],  # 传递给函数的参数
             misfire_grace_time=3600,
             replace_existing=True,
             id='identity_eval_task',
