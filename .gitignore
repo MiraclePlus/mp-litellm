@@ -90,4 +90,5 @@ tests/litellm/litellm_core_utils/llm_cost_calc/log.txt
 litellm_venv/*
 evalscope/*
 .vscode/*
-litellm/proxy/_experimental/out/*
+litellm/proxy/_experimental/out/
+/ui/litellm-dashboard/out/
