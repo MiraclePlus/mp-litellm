@@ -36,7 +36,7 @@ async def eval_models_response(
         fastapi_response: Response,
         request: Request,
 ):
-    from litellm.proxy.proxy_server import prisma_client, litellm
+    from litellm.proxy.proxy_server import prisma_client, litellm, llm_router
     try:
         if prisma_client is None:
             raise HTTPException(
@@ -45,21 +45,23 @@ async def eval_models_response(
             )
 
         # 查询所有的LiteLLM_ProxyModelTable数据
-        db_model_list = await prisma_client.db.litellm_proxymodeltable.find_many()
+        # db_model_list = await prisma_client.db.litellm_proxymodeltable.find_many()
+        db_model_list = llm_router.model_list
+        print('aaa', db_model_list)
 
         # 将Prisma模型转换为普通字典列表
         model_list = []
         for model in db_model_list:
             # 创建一个新的字典，包含模型的所有属性
             model_dict = {
-                "model_id": model.model_id,
-                "model_name": model.model_name,
-                "litellm_params": model.litellm_params,
-                "model_info": model.model_info,
-                "created_at": model.created_at.isoformat() if hasattr(model, "created_at") else None,
-                "created_by": model.created_by if hasattr(model, "created_by") else None,
-                "updated_at": model.updated_at.isoformat() if hasattr(model, "updated_at") else None,
-                "updated_by": model.updated_by if hasattr(model, "updated_by") else None,
+                "model_id": model["model_name"],
+                "model_name": model["model_name"],
+                "litellm_params": model["litellm_params"],
+                "model_info": model["model_info"],
+                "created_at": model.get("created_at"),
+                "created_by": model.get("created_by"),
+                "updated_at": model.get("updated_at"),
+                "updated_by": model.get("updated_by"),
                 "dataset_keys": []  # 默认为空数组
             }
             model_list.append(model_dict)
