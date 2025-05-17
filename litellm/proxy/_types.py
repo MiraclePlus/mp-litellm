@@ -106,7 +106,7 @@ class LitellmUserRoles(str, enum.Enum):
         descriptions = {
             "proxy_admin": "admin over litellm proxy, has all permissions",
             "proxy_admin_viewer": "view all keys, view all spend",
-            "internal_user": "view/create/delete their own keys, view their own spend",
+            "internal_user": "view/create/delete their own keys, view model hub",
             "internal_user_viewer": "view their own keys, view their own spend",
             "team": "team scope used for JWT auth",
             "customer": "customer",
@@ -470,6 +470,7 @@ class LiteLLMRoutes(enum.Enum):
             "/global/spend/end_users",
             "/global/activity",
             "/global/activity/model",
+            "/config/field/info",
         ]
         + spend_tracking_routes
         + key_management_routes

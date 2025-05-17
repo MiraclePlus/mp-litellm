@@ -2,7 +2,7 @@ import { Layout, Menu } from "antd";
 import Link from "next/link";
 import { List } from "postcss/lib/list";
 import { Text } from "@tremor/react";
-import { 
+import {
   KeyOutlined,
   PlayCircleOutlined,
   BlockOutlined,
@@ -23,8 +23,16 @@ import {
   LockOutlined,
   ToolOutlined,
   TagsOutlined,
-} from '@ant-design/icons';
-import { old_admin_roles, v2_admin_role_names, all_admin_roles, rolesAllowedToSeeUsage, rolesWithWriteAccess, internalUserRoles } from '../utils/roles';
+} from "@ant-design/icons";
+import {
+  old_admin_roles,
+  v2_admin_role_names,
+  all_admin_roles,
+  rolesAllowedToSeeUsage,
+  rolesWithWriteAccess,
+  internalUserRoles,
+  internalManageUserRoles,
+} from "../utils/roles";
 
 const { Sider } = Layout;
 
@@ -41,11 +49,9 @@ interface MenuItem {
   page: string;
   label: string;
   roles?: string[];
-  children?: MenuItem[];  // Add children property for submenus
+  children?: MenuItem[]; // Add children property for submenus
   icon?: React.ReactNode;
 }
-
-
 
 const Sidebar: React.FC<SidebarProps> = ({
   setPage,
@@ -54,31 +60,123 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   // Note: If a menu item does not have a role, it is visible to all roles.
   const menuItems: MenuItem[] = [
-    { key: "1", page: "api-keys", label: "Virtual Keys", icon: <KeyOutlined /> },
-    { key: "3", page: "llm-playground", label: "Test Key", icon: <PlayCircleOutlined />, roles: rolesWithWriteAccess },
-    { key: "2", page: "models", label: "Models", icon: <BlockOutlined />, roles: rolesWithWriteAccess },
-    { key: "12", page: "new_usage", label: "Usage", icon: <BarChartOutlined />, roles: [...all_admin_roles, ...internalUserRoles] },
+    {
+      key: "1",
+      page: "api-keys",
+      label: "Virtual Keys",
+      icon: <KeyOutlined />,
+    },
+    {
+      key: "3",
+      page: "llm-playground",
+      label: "Test Key",
+      icon: <PlayCircleOutlined />,
+      roles: rolesWithWriteAccess,
+    },
+    {
+      key: "2",
+      page: "models",
+      label: "Models",
+      icon: <BlockOutlined />,
+      roles: rolesWithWriteAccess,
+    },
+    {
+      key: "12",
+      page: "new_usage",
+      label: "Usage",
+      icon: <BarChartOutlined />,
+      roles: [...all_admin_roles, ...internalUserRoles],
+    },
     { key: "6", page: "teams", label: "Teams", icon: <TeamOutlined /> },
-    { key: "17", page: "organizations", label: "Organizations", icon: <BankOutlined />, roles: all_admin_roles },
-    { key: "5", page: "users", label: "Internal Users", icon: <UserOutlined />, roles: all_admin_roles },
-    { key: "14", page: "api_ref", label: "API Reference", icon: <ApiOutlined /> },
-    { key: "16", page: "model-hub", label: "Model Hub", icon: <AppstoreOutlined /> },
-    { key: "15", page: "logs", label: "Logs", icon: <LineChartOutlined />},
-    { key: "11", page: "guardrails", label: "Guardrails", icon: <SafetyOutlined />, roles: all_admin_roles },
-    { 
-      key: "experimental", 
+    {
+      key: "17",
+      page: "organizations",
+      label: "Organizations",
+      icon: <BankOutlined />,
+      roles: all_admin_roles,
+    },
+    {
+      key: "5",
+      page: "users",
+      label: "Internal Users",
+      icon: <UserOutlined />,
+      roles: all_admin_roles,
+    },
+    {
+      key: "14",
+      page: "api_ref",
+      label: "API Reference",
+      icon: <ApiOutlined />,
+    },
+    {
+      key: "16",
+      page: "model-hub",
+      label: "Model Hub",
+      icon: <AppstoreOutlined />,
+    },
+    { key: "15", page: "logs", label: "Logs", icon: <LineChartOutlined /> },
+    {
+      key: "11",
+      page: "guardrails",
+      label: "Guardrails",
+      icon: <SafetyOutlined />,
+      roles: all_admin_roles,
+    },
+    {
+      key: "experimental",
       page: "experimental",
-      label: "Experimental", 
+      label: "Experimental",
       icon: <ExperimentOutlined />,
       children: [
-        { key: "9", page: "caching", label: "Caching", icon: <DatabaseOutlined />, roles: all_admin_roles },
-        { key: "10", page: "budgets", label: "Budgets", icon: <BankOutlined />, roles: all_admin_roles },
-        { key: "20", page: "transform-request", label: "API Playground", icon: <ApiOutlined />, roles: [...all_admin_roles, ...internalUserRoles] },
-        { key: "18", page: "mcp-tools", label: "MCP Tools", icon: <ToolOutlined />, roles: all_admin_roles },
-        { key: "19", page: "tag-management", label: "Tag Management", icon: <TagsOutlined />, roles: all_admin_roles },
-        { key: "21", page: "vector-stores", label: "Vector Stores", icon: <DatabaseOutlined />, roles: all_admin_roles },
-        { key: "4", page: "usage", label: "Old Usage", icon: <BarChartOutlined /> },
-      ]
+        {
+          key: "9",
+          page: "caching",
+          label: "Caching",
+          icon: <DatabaseOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "10",
+          page: "budgets",
+          label: "Budgets",
+          icon: <BankOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "20",
+          page: "transform-request",
+          label: "API Playground",
+          icon: <ApiOutlined />,
+          roles: [...all_admin_roles, ...internalUserRoles],
+        },
+        {
+          key: "18",
+          page: "mcp-tools",
+          label: "MCP Tools",
+          icon: <ToolOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "19",
+          page: "tag-management",
+          label: "Tag Management",
+          icon: <TagsOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "21",
+          page: "vector-stores",
+          label: "Vector Stores",
+          icon: <DatabaseOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "4",
+          page: "usage",
+          label: "Old Usage",
+          icon: <BarChartOutlined />,
+        },
+      ],
     },
     {
       key: "settings",
@@ -87,23 +185,59 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: <SettingOutlined />,
       roles: all_admin_roles,
       children: [
-        { key: "11", page: "general-settings", label: "Router Settings", icon: <SettingOutlined />, roles: all_admin_roles },
-        { key: "12", page: "pass-through-settings", label: "Pass-Through", icon: <ApiOutlined />, roles: all_admin_roles },
-        { key: "8", page: "settings", label: "Logging & Alerts", icon: <SettingOutlined />, roles: all_admin_roles },
-        { key: "13", page: "admin-panel", label: "Admin Settings", icon: <SettingOutlined />, roles: all_admin_roles },
-      ]
-    }
+        {
+          key: "11",
+          page: "general-settings",
+          label: "Router Settings",
+          icon: <SettingOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "12",
+          page: "pass-through-settings",
+          label: "Pass-Through",
+          icon: <ApiOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "8",
+          page: "settings",
+          label: "Logging & Alerts",
+          icon: <SettingOutlined />,
+          roles: all_admin_roles,
+        },
+        {
+          key: "13",
+          page: "admin-panel",
+          label: "Admin Settings",
+          icon: <SettingOutlined />,
+          roles: all_admin_roles,
+        },
+      ],
+    },
+    {
+      key: "90",
+      page: "eval_models",
+      label: "Test Models",
+      icon: <AppstoreOutlined />,
+    },
+    {
+      key: "100",
+      page: "identity_eval_chart",
+      label: "LLM Test Statistics",
+      icon: <BarChartOutlined />,
+    },
   ];
   // Find the menu item that matches the default page, including in submenus
   const findMenuItemKey = (page: string): string => {
     // Check top-level items
-    const topLevelItem = menuItems.find(item => item.page === page);
+    const topLevelItem = menuItems.find((item) => item.page === page);
     if (topLevelItem) return topLevelItem.key;
 
     // Check submenu items
     for (const item of menuItems) {
       if (item.children) {
-        const childItem = item.children.find(child => child.page === page);
+        const childItem = item.children.find((child) => child.page === page);
         if (childItem) return childItem.key;
       }
     }
@@ -112,22 +246,34 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const selectedMenuKey = findMenuItemKey(defaultSelectedKey);
 
-  const filteredMenuItems = menuItems.filter(item => {
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (internalManageUserRoles.includes(userRole)) {
+      // Internal users can see all items except for the API Keys, Model Hub, Usage, and logs
+      if (
+        item.key === "1" ||
+        item.key === "16" ||
+        item.key === "4" ||
+        item.key === "15" ||
+        item.key === "12"
+      ) {
+        return true;
+      }
+      return false;
+    }
     // Check if parent item has roles and user has access
     const hasParentAccess = !item.roles || item.roles.includes(userRole);
-    
+
     if (!hasParentAccess) return false;
 
     // Filter children if they exist
     if (item.children) {
-      item.children = item.children.filter(child => 
-        !child.roles || child.roles.includes(userRole)
+      item.children = item.children.filter(
+        (child) => !child.roles || child.roles.includes(userRole)
       );
     }
 
     return true;
   });
-
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -135,32 +281,46 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Menu
           mode="inline"
           selectedKeys={[selectedMenuKey]}
-          style={{ 
+          style={{
             borderRight: 0,
-            backgroundColor: 'transparent',
-            fontSize: '14px',
+            backgroundColor: "transparent",
+            fontSize: "14px",
           }}
-          items={filteredMenuItems.map(item => ({
+          items={filteredMenuItems.map((item) => ({
             key: item.key,
             icon: item.icon,
             label: item.label,
-            children: item.children?.map(child => ({
+            children: item.children?.map((child) => ({
               key: child.key,
               icon: child.icon,
               label: child.label,
               onClick: () => {
-                const newSearchParams = new URLSearchParams(window.location.search);
-                newSearchParams.set('page', child.page);
-                window.history.pushState(null, '', `?${newSearchParams.toString()}`);
+                const newSearchParams = new URLSearchParams(
+                  window.location.search
+                );
+                newSearchParams.set("page", child.page);
+                window.history.pushState(
+                  null,
+                  "",
+                  `?${newSearchParams.toString()}`
+                );
                 setPage(child.page);
-              }
+              },
             })),
-            onClick: !item.children ? () => {
-              const newSearchParams = new URLSearchParams(window.location.search);
-              newSearchParams.set('page', item.page);
-              window.history.pushState(null, '', `?${newSearchParams.toString()}`);
-              setPage(item.page);
-            } : undefined
+            onClick: !item.children
+              ? () => {
+                  const newSearchParams = new URLSearchParams(
+                    window.location.search
+                  );
+                  newSearchParams.set("page", item.page);
+                  window.history.pushState(
+                    null,
+                    "",
+                    `?${newSearchParams.toString()}`
+                  );
+                  setPage(item.page);
+                }
+              : undefined,
           }))}
         />
       </Sider>
