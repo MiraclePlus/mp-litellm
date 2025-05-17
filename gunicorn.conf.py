@@ -1,0 +1,13 @@
+bind = ":80"
+workers = 2
+worker_class = "uvicorn.workers.UvicornWorker"
+preload = True
+timeout = 7200  # Max time for a request (seconds)
+graceful_timeout = 1800  # Max time for workers to shut down (seconds)
+access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s'
+# max_requests = 1000    # Restart workers after 1000 requests
+# max_requests_jitter = 50
+loglevel = "debug"
+accesslog = "./logs/gunicorn_access.log"
+reload = True
+pidfile = "./gunicorn.pid"
