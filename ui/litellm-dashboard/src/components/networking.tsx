@@ -13,7 +13,10 @@ import {
 } from "./tag_management/types";
 import { Team } from "./key_team_helpers/key_list";
 import { UserInfo } from "./view_users/types";
-import { EmailEventSettingsResponse, EmailEventSettingsUpdateRequest } from "./email_events/types";
+import {
+  EmailEventSettingsResponse,
+  EmailEventSettingsUpdateRequest,
+} from "./email_events/types";
 
 const isLocal = process.env.NODE_ENV === "development";
 export const proxyBaseUrl = isLocal ? "http://localhost:4000" : null;
@@ -679,17 +682,14 @@ export const teamDeleteCall = async (accessToken: String, teamID: String) => {
   }
 };
 
-<<<<<<< HEAD
 export type UserListResponse = {
-  page: number,
-  page_size: number,
-  total: number,
-  total_pages: number,
-  users: UserInfo[]
-}
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+  users: UserInfo[];
+};
 
-=======
->>>>>>> mp
 export const userListCall = async (
   accessToken: String,
   userIDs: string[] | null = null,
@@ -767,7 +767,7 @@ export const userListCall = async (
       throw new Error("Network response was not ok");
     }
 
-    const data = await response.json() as UserListResponse;
+    const data = (await response.json()) as UserListResponse;
     console.log("/user/list API Response:", data);
     return data;
     // Handle success - you might want to update some state or UI based on the created key
@@ -888,7 +888,7 @@ export const v2TeamListCall = async (
   page: number = 1,
   page_size: number = 10,
   sort_by: string | null = null,
-  sort_order: 'asc' | 'desc' | null = null,
+  sort_order: "asc" | "desc" | null = null
 ): Promise<TeamListResponse> => {
   /**
    * Get list of teams with filtering and sorting options
@@ -899,19 +899,19 @@ export const v2TeamListCall = async (
     const queryParams = new URLSearchParams();
 
     if (userID) {
-      queryParams.append('user_id', userID.toString());
+      queryParams.append("user_id", userID.toString());
     }
 
     if (organizationID) {
-      queryParams.append('organization_id', organizationID.toString());
+      queryParams.append("organization_id", organizationID.toString());
     }
 
     if (teamID) {
-      queryParams.append('team_id', teamID.toString());
+      queryParams.append("team_id", teamID.toString());
     }
 
     if (team_alias) {
-      queryParams.append('team_alias', team_alias.toString());
+      queryParams.append("team_alias", team_alias.toString());
     }
 
     const queryString = queryParams.toString();
@@ -943,17 +943,13 @@ export const v2TeamListCall = async (
   }
 };
 
-
 export const teamListCall = async (
   accessToken: String,
   organizationID: string | null,
-<<<<<<< HEAD
+
   userID: String | null = null,
   teamID: string | null = null,
-  team_alias: string | null = null,
-=======
-  userID: String | null = null
->>>>>>> mp
+  team_alias: string | null = null
 ) => {
   /**
    * Get all available teams on proxy
@@ -971,17 +967,14 @@ export const teamListCall = async (
       queryParams.append("organization_id", organizationID.toString());
     }
 
-<<<<<<< HEAD
     if (teamID) {
-      queryParams.append('team_id', teamID.toString());
+      queryParams.append("team_id", teamID.toString());
     }
 
     if (team_alias) {
-      queryParams.append('team_alias', team_alias.toString());
+      queryParams.append("team_alias", team_alias.toString());
     }
 
-=======
->>>>>>> mp
     const queryString = queryParams.toString();
     if (queryString) {
       url += `?${queryString}`;
@@ -2213,13 +2206,10 @@ export const uiSpendLogsCall = async (
   end_date?: string,
   page?: number,
   page_size?: number,
-<<<<<<< HEAD
+
   user_id?: string,
   status_filter?: string,
   model?: string
-=======
-  user_id?: string
->>>>>>> mp
 ) => {
   try {
     // Construct base URL
@@ -2227,18 +2217,7 @@ export const uiSpendLogsCall = async (
 
     // Add query parameters if they exist
     const queryParams = new URLSearchParams();
-<<<<<<< HEAD
-    if (api_key) queryParams.append('api_key', api_key);
-    if (team_id) queryParams.append('team_id', team_id);
-    if (request_id) queryParams.append('request_id', request_id);
-    if (start_date) queryParams.append('start_date', start_date);
-    if (end_date) queryParams.append('end_date', end_date);
-    if (page) queryParams.append('page', page.toString());
-    if (page_size) queryParams.append('page_size', page_size.toString());
-    if (user_id) queryParams.append('user_id', user_id);
-    if (status_filter) queryParams.append('status_filter', status_filter);
-    if (model) queryParams.append('model', model);
-=======
+
     if (api_key) queryParams.append("api_key", api_key);
     if (team_id) queryParams.append("team_id", team_id);
     if (request_id) queryParams.append("request_id", request_id);
@@ -2247,8 +2226,9 @@ export const uiSpendLogsCall = async (
     if (page) queryParams.append("page", page.toString());
     if (page_size) queryParams.append("page_size", page_size.toString());
     if (user_id) queryParams.append("user_id", user_id);
+    if (status_filter) queryParams.append("status_filter", status_filter);
+    if (model) queryParams.append("model", model);
 
->>>>>>> mp
     // Append query parameters to URL if any exist
     const queryString = queryParams.toString();
     if (queryString) {
@@ -2789,13 +2769,9 @@ export const keyListCall = async (
   userID: string | null,
   keyHash: string | null,
   page: number,
-<<<<<<< HEAD
   pageSize: number,
   sortBy: string | null = null,
-  sortOrder: string | null = null,
-=======
-  pageSize: number
->>>>>>> mp
+  sortOrder: string | null = null
 ) => {
   /**
    * Get all available teams on proxy
@@ -2818,11 +2794,11 @@ export const keyListCall = async (
     }
 
     if (keyHash) {
-      queryParams.append('key_hash', keyHash);
+      queryParams.append("key_hash", keyHash);
     }
 
     if (userID) {
-      queryParams.append('user_id', userID.toString());
+      queryParams.append("user_id", userID.toString());
     }
 
     if (page) {
@@ -2833,22 +2809,16 @@ export const keyListCall = async (
       queryParams.append("size", pageSize.toString());
     }
 
-<<<<<<< HEAD
     if (sortBy) {
-      queryParams.append('sort_by', sortBy);
+      queryParams.append("sort_by", sortBy);
     }
 
     if (sortOrder) {
-      queryParams.append('sort_order', sortOrder);
+      queryParams.append("sort_order", sortOrder);
     }
-    queryParams.append('return_full_object', 'true');
-    queryParams.append('include_team_keys', 'true');
-
-=======
     queryParams.append("return_full_object", "true");
     queryParams.append("include_team_keys", "true");
 
->>>>>>> mp
     const queryString = queryParams.toString();
     if (queryString) {
       url += `?${queryString}`;
@@ -3030,7 +3000,10 @@ export const getPossibleUserRoles = async (accessToken: String) => {
       const errorData = await response.text();
       throw new Error("Network response was not ok");
     }
-    const data = await response.json() as Record<string, Record<string, string>>;
+    const data = (await response.json()) as Record<
+      string,
+      Record<string, string>
+    >;
     console.log("response from user/available_role", data);
     return data;
     // Handle success - you might want to update some state or UI based on the created key
@@ -3732,7 +3705,7 @@ export const userUpdateUserCall = async (
       throw new Error("Network response was not ok");
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       user_id: string;
       data: UserInfo;
     };
@@ -4389,14 +4362,10 @@ export const getProxyUISettings = async (accessToken: String) => {
 
 export const getGuardrailsList = async (accessToken: String) => {
   try {
-<<<<<<< HEAD
-    const url = proxyBaseUrl ? `${proxyBaseUrl}/v2/guardrails/list` : `/v2/guardrails/list`;
-=======
-    let url = proxyBaseUrl
-      ? `${proxyBaseUrl}/guardrails/list`
-      : `/guardrails/list`;
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/v2/guardrails/list`
+      : `/v2/guardrails/list`;
 
->>>>>>> mp
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -4419,8 +4388,10 @@ export const getGuardrailsList = async (accessToken: String) => {
   }
 };
 
-<<<<<<< HEAD
-export const createGuardrailCall = async (accessToken: string, guardrailData: any) => {
+export const createGuardrailCall = async (
+  accessToken: string,
+  guardrailData: any
+) => {
   try {
     const url = proxyBaseUrl ? `${proxyBaseUrl}/guardrails` : `/guardrails`;
 
@@ -4431,7 +4402,7 @@ export const createGuardrailCall = async (accessToken: string, guardrailData: an
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        guardrail: guardrailData
+        guardrail: guardrailData,
       }),
     });
 
@@ -4450,8 +4421,6 @@ export const createGuardrailCall = async (accessToken: string, guardrailData: an
   }
 };
 
-=======
->>>>>>> mp
 export const uiSpendLogDetailsCall = async (
   accessToken: string,
   logId: string,
