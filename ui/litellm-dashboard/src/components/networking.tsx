@@ -4990,3 +4990,413 @@ export const evalModelsUpdateCall = async (
     throw error;
   }
 };
+
+export const getEmailEventSettings = async (
+  accessToken: string
+): Promise<EmailEventSettingsResponse> => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/email/event_settings`
+      : `/email/event_settings`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Failed to get email event settings");
+    }
+
+    const data = await response.json();
+    console.log("Email event settings response:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to get email event settings:", error);
+    throw error;
+  }
+};
+export const updateEmailEventSettings = async (
+  accessToken: string,
+  settings: EmailEventSettingsUpdateRequest
+) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/email/event_settings`
+      : `/email/event_settings`;
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(settings),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Failed to update email event settings");
+    }
+
+    const data = await response.json();
+    console.log("Update email event settings response:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to update email event settings:", error);
+    throw error;
+  }
+};
+
+export const resetEmailEventSettings = async (accessToken: string) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/email/event_settings/reset`
+      : `/email/event_settings/reset`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Failed to reset email event settings");
+    }
+
+    const data = await response.json();
+    console.log("Reset email event settings response:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to reset email event settings:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get all spend logs for a particular session
+ */
+export const sessionSpendLogsCall = async (
+  accessToken: string,
+  session_id: string
+) => {
+  try {
+    let url = proxyBaseUrl
+      ? `${proxyBaseUrl}/spend/logs/session/ui?session_id=${encodeURIComponent(session_id)}`
+      : `/spend/logs/session/ui?session_id=${encodeURIComponent(session_id)}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Network response was not ok");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch session logs:", error);
+    throw error;
+  }
+};
+export const vectorStoreCreateCall = async (
+  accessToken: string,
+  formValues: Record<string, any>
+): Promise<void> => {
+  try {
+    let url = proxyBaseUrl
+      ? `${proxyBaseUrl}/vector_store/new`
+      : `/vector_store/new`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(formValues),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to create vector store");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error creating vector store:", error);
+    throw error;
+  }
+};
+export const vectorStoreListCall = async (
+  accessToken: string,
+  page: number = 1,
+  page_size: number = 100
+): Promise<any> => {
+  try {
+    let url = proxyBaseUrl
+      ? `${proxyBaseUrl}/vector_store/list`
+      : `/vector_store/list`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to list vector stores");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error listing vector stores:", error);
+    throw error;
+  }
+};
+export const vectorStoreDeleteCall = async (
+  accessToken: string,
+  vectorStoreId: string
+): Promise<void> => {
+  try {
+    let url = proxyBaseUrl
+      ? `${proxyBaseUrl}/vector_store/delete`
+      : `/vector_store/delete`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ vector_store_id: vectorStoreId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to delete vector store");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting vector store:", error);
+    throw error;
+  }
+};
+export const vectorStoreInfoCall = async (
+  accessToken: string,
+  vectorStoreId: string
+): Promise<any> => {
+  try {
+    let url = proxyBaseUrl
+      ? `${proxyBaseUrl}/vector_store/info`
+      : `/vector_store/info`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ vector_store_id: vectorStoreId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to get vector store info");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error getting vector store info:", error);
+    throw error;
+  }
+};
+
+export { type UserInfo } from "./view_users/types"; // Re-export UserInfo
+export { type Team } from "./key_team_helpers/key_list"; // Re-export Team
+
+export const deleteGuardrailCall = async (
+  accessToken: string,
+  guardrailId: string
+) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/guardrails/${guardrailId}`
+      : `/guardrails/${guardrailId}`;
+
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error(errorData);
+    }
+
+    const data = await response.json();
+    console.log("Delete guardrail response:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to delete guardrail:", error);
+    throw error;
+  }
+};
+
+export const getGuardrailUISettings = async (accessToken: string) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/guardrails/ui/add_guardrail_settings`
+      : `/guardrails/ui/add_guardrail_settings`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Failed to get guardrail UI settings");
+    }
+
+    const data = await response.json();
+    console.log("Guardrail UI settings response:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to get guardrail UI settings:", error);
+    throw error;
+  }
+};
+
+export const getGuardrailProviderSpecificParams = async (
+  accessToken: string
+) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/guardrails/ui/provider_specific_params`
+      : `/guardrails/ui/provider_specific_params`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Failed to get guardrail provider specific parameters");
+    }
+
+    const data = await response.json();
+    console.log("Guardrail provider specific params response:", data);
+    return data;
+  } catch (error) {
+    console.error(
+      "Failed to get guardrail provider specific parameters:",
+      error
+    );
+    throw error;
+  }
+};
+
+export const getGuardrailInfo = async (
+  accessToken: string,
+  guardrailId: string
+) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/guardrails/${guardrailId}/info`
+      : `/guardrails/${guardrailId}/info`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Failed to get guardrail info");
+    }
+
+    const data = await response.json();
+    console.log("Guardrail info response:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to get guardrail info:", error);
+    throw error;
+  }
+};
+
+export const updateGuardrailCall = async (
+  accessToken: string,
+  guardrailId: string,
+  updateData: {
+    guardrail_name?: string;
+    default_on?: boolean;
+    guardrail_info?: Record<string, any>;
+  }
+) => {
+  try {
+    const url = proxyBaseUrl
+      ? `${proxyBaseUrl}/guardrails/${guardrailId}`
+      : `/guardrails/${guardrailId}`;
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      handleError(errorData);
+      throw new Error("Failed to update guardrail");
+    }
+
+    const data = await response.json();
+    console.log("Update guardrail response:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to update guardrail:", error);
+    throw error;
+  }
+};
