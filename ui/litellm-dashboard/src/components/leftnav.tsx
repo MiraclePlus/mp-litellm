@@ -227,6 +227,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: "LLM Test Statistics",
       icon: <BarChartOutlined />,
     },
+    {
+      key: "150",
+      page: "external-link",
+      label: "LLM Proxy",
+      icon: <ApiOutlined />,
+    },
   ];
   // Find the menu item that matches the default page, including in submenus
   const findMenuItemKey = (page: string): string => {
@@ -295,6 +301,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               icon: child.icon,
               label: child.label,
               onClick: () => {
+                if (child.page === "external-link") {
+                  window.open(
+                    "http://llm-proxy.miracleplus.com:4000/",
+                    "_blank"
+                  );
+                  return;
+                }
                 const newSearchParams = new URLSearchParams(
                   window.location.search
                 );
@@ -309,6 +322,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             })),
             onClick: !item.children
               ? () => {
+                  if (item.page === "external-link") {
+                    window.open(
+                      "http://llm-proxy.miracleplus.com:4000/",
+                      "_blank"
+                    );
+                    return;
+                  }
                   const newSearchParams = new URLSearchParams(
                     window.location.search
                   );
