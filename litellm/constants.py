@@ -141,6 +141,7 @@ DEFAULT_MAX_TOKENS_FOR_TRITON = int(os.getenv("DEFAULT_MAX_TOKENS_FOR_TRITON", 2
 #### Networking settings ####
 request_timeout: float = float(os.getenv("REQUEST_TIMEOUT", 6000))  # time in seconds
 STREAM_SSE_DONE_STRING: str = "[DONE]"
+STREAM_SSE_DATA_PREFIX: str = "data: "
 ### SPEND TRACKING ###
 DEFAULT_REPLICATE_GPU_PRICE_PER_SECOND = float(
     os.getenv("DEFAULT_REPLICATE_GPU_PRICE_PER_SECOND", 0.001400)
@@ -152,13 +153,18 @@ FIREWORKS_AI_16_B = int(os.getenv("FIREWORKS_AI_16_B", 16))
 FIREWORKS_AI_80_B = int(os.getenv("FIREWORKS_AI_80_B", 80))
 #### Logging callback constants ####
 REDACTED_BY_LITELM_STRING = "REDACTED_BY_LITELM"
+MAX_LANGFUSE_INITIALIZED_CLIENTS = int(
+    os.getenv("MAX_LANGFUSE_INITIALIZED_CLIENTS", 20)
+)
 
+############### LLM Provider Constants ###############
 ### ANTHROPIC CONSTANTS ###
 ANTHROPIC_WEB_SEARCH_TOOL_MAX_USES = {
     "low": 1,
     "medium": 5,
     "high": 10,
 }
+DEFAULT_IMAGE_ENDPOINT_MODEL = "dall-e-2"
 
 LITELLM_CHAT_PROVIDERS = [
     "openai",
@@ -223,13 +229,14 @@ LITELLM_CHAT_PROVIDERS = [
     "galadriel",
     "novita",
     "meta_llama",
+    "featherless_ai",
     "nscale",
 ]
 
 LITELLM_EMBEDDING_PROVIDERS_SUPPORTING_INPUT_ARRAY_OF_TOKENS = [
     "openai",
     "azure",
-    "hosted_vllm"
+    "hosted_vllm",
 ]
 
 
@@ -292,6 +299,7 @@ openai_compatible_endpoints: List = [
     "api.x.ai/v1",
     "api.galadriel.ai/v1",
     "api.llama.com/compat/v1/",
+    "api.featherless.ai/v1",
     "inference.api.nscale.com/v1",
 ]
 
@@ -325,6 +333,7 @@ openai_compatible_providers: List = [
     "galadriel",
     "novita",
     "meta_llama",
+    "featherless_ai",
     "nscale",
 ]
 openai_text_completion_compatible_providers: List = (
@@ -334,6 +343,7 @@ openai_text_completion_compatible_providers: List = (
         "hosted_vllm",
         "meta_llama",
         "llamafile",
+        "featherless_ai",
     ]
 )
 _openai_like_providers: List = [
@@ -480,6 +490,18 @@ baseten_models: List = [
     "31dxrj3",
 ]  # FALCON 7B  # WizardLM  # Mosaic ML
 
+featherless_ai_models: List = [
+    "featherless-ai/Qwerky-72B",
+    "featherless-ai/Qwerky-QwQ-32B",
+    "Qwen/Qwen2.5-72B-Instruct",
+    "all-hands/openhands-lm-32b-v0.1",
+    "Qwen/Qwen2.5-Coder-32B-Instruct",
+    "deepseek-ai/DeepSeek-V3-0324",
+    "mistralai/Mistral-Small-24B-Instruct-2501",
+    "mistralai/Mistral-Nemo-Instruct-2407",
+    "ProdeusUnity/Stellar-Odyssey-12b-v0.0",
+]
+
 BEDROCK_INVOKE_PROVIDERS_LITERAL = Literal[
     "cohere",
     "anthropic",
@@ -577,6 +599,7 @@ PROMETHEUS_BUDGET_METRICS_REFRESH_INTERVAL_MINUTES = int(
     os.getenv("PROMETHEUS_BUDGET_METRICS_REFRESH_INTERVAL_MINUTES", 5)
 )
 MCP_TOOL_NAME_PREFIX = "mcp_tool"
+MAXIMUM_TRACEBACK_LINES_TO_LOG = int(os.getenv("MAXIMUM_TRACEBACK_LINES_TO_LOG", 100))
 
 ########################### LiteLLM Proxy Specific Constants ###########################
 ########################################################################################
@@ -618,7 +641,7 @@ LITELLM_PROXY_ADMIN_NAME = "default_user_id"
 DB_SPEND_UPDATE_JOB_NAME = "db_spend_update_job"
 PROMETHEUS_EMIT_BUDGET_METRICS_JOB_NAME = "prometheus_emit_budget_metrics"
 SPEND_LOG_CLEANUP_JOB_NAME = "spend_log_cleanup"
-SPEND_LOG_RUN_LOOPS = int(os.getenv("SPEND_LOG_RUN_LOOPS", 100))
+SPEND_LOG_RUN_LOOPS = int(os.getenv("SPEND_LOG_RUN_LOOPS", 500))
 DEFAULT_CRON_JOB_LOCK_TTL_SECONDS = int(
     os.getenv("DEFAULT_CRON_JOB_LOCK_TTL_SECONDS", 60)
 )  # 1 minute

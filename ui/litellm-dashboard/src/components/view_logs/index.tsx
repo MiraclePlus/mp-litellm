@@ -3,26 +3,21 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import {
-  uiSpendLogsCall,
-  keyInfoV1Call,
-  sessionSpendLogsCall,
-  keyListCall,
-} from "../networking";
+import { uiSpendLogsCall, keyInfoV1Call, sessionSpendLogsCall, keyListCall } from "../networking";
 import { DataTable } from "./table";
 import { columns, LogEntry } from "./columns";
 import { Row } from "@tanstack/react-table";
 import { prefetchLogDetails } from "./prefetch";
-import { RequestResponsePanel } from "./RequestResponsePanel";
-import { ErrorViewer } from "./ErrorViewer";
+import { RequestResponsePanel } from './RequestResponsePanel';
+import { ErrorViewer } from './ErrorViewer';
 import { internalUserRoles } from "../../utils/roles";
-import { ConfigInfoMessage } from "./ConfigInfoMessage";
+import { ConfigInfoMessage } from './ConfigInfoMessage';
 import { Tooltip } from "antd";
 import { KeyResponse, Team } from "../key_team_helpers/key_list";
 import KeyInfoView from "../key_info_view";
-import { SessionView } from "./SessionView";
-import { VectorStoreViewer } from "./VectorStoreViewer";
-import { GuardrailViewer } from "./GuardrailViewer";
+import { SessionView } from './SessionView';
+import { VectorStoreViewer } from './VectorStoreViewer';
+import { GuardrailViewer } from './GuardrailViewer';
 import FilterComponent from "../common_components/filter";
 import { FilterOption } from "../common_components/filter";
 import { useLogFilterLogic } from "./log_filter_logic";
@@ -81,23 +76,15 @@ export default function SpendLogsTable({
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [selectedKeyHash, setSelectedKeyHash] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
-  const [selectedKeyInfo, setSelectedKeyInfo] = useState<KeyResponse | null>(
-    null
-  );
-  const [selectedKeyIdInfoView, setSelectedKeyIdInfoView] = useState<
-    string | null
-  >(null);
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedKeyInfo, setSelectedKeyInfo] = useState<KeyResponse | null>(null);
+  const [selectedKeyIdInfoView, setSelectedKeyIdInfoView] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState(""); 
   const [filterByCurrentUser, setFilterByCurrentUser] = useState(
     userRole && internalUserRoles.includes(userRole)
   );
 
-  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(
-    null
-  );
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    null
-  );
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -108,8 +95,8 @@ export default function SpendLogsTable({
 
         const keyResponse: KeyResponse = {
           ...keyData["info"],
-          token: selectedKeyIdInfoView,
-          api_key: selectedKeyIdInfoView,
+          "token": selectedKeyIdInfoView,
+          "api_key": selectedKeyIdInfoView,
         };
         setSelectedKeyInfo(keyResponse);
       }
@@ -141,8 +128,10 @@ export default function SpendLogsTable({
     }
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
 
   useEffect(() => {
     if (userRole && internalUserRoles.includes(userRole)) {
@@ -162,7 +151,7 @@ export default function SpendLogsTable({
       selectedKeyHash,
       filterByCurrentUser ? userID : null,
       selectedStatus,
-      selectedModel,
+      selectedModel
     ],
     queryFn: async () => {
       if (!accessToken || !token || !userRole || !userID) {
@@ -175,10 +164,8 @@ export default function SpendLogsTable({
         };
       }
 
-      const formattedStartTime = moment(startTime)
-        .utc()
-        .format("YYYY-MM-DD HH:mm:ss");
-      const formattedEndTime = isCustomDate
+      const formattedStartTime = moment(startTime).utc().format("YYYY-MM-DD HH:mm:ss");
+      const formattedEndTime = isCustomDate 
         ? moment(endTime).utc().format("YYYY-MM-DD HH:mm:ss")
         : moment().utc().format("YYYY-MM-DD HH:mm:ss");
 
@@ -207,11 +194,9 @@ export default function SpendLogsTable({
 
       // Update logs with prefetched data if available
       response.data = response.data.map((log: LogEntry) => {
-        const prefetchedData = queryClient.getQueryData<PrefetchedLog>([
-          "logDetails",
-          log.request_id,
-          formattedStartTime,
-        ]);
+        const prefetchedData = queryClient.getQueryData<PrefetchedLog>(
+          ["logDetails", log.request_id, formattedStartTime]
+        );
 
         if (prefetchedData?.messages && prefetchedData?.response) {
           log.messages = prefetchedData.messages;
@@ -233,7 +218,7 @@ export default function SpendLogsTable({
     total: 0,
     page: 1,
     page_size: pageSize || 10,
-    total_pages: 1,
+    total_pages: 1
   };
 
   const {
@@ -241,9 +226,8 @@ export default function SpendLogsTable({
     filteredLogs,
     allTeams: hookAllTeams,
     allKeyAliases,
-    allModels,
     handleFilterChange,
-    handleFilterReset,
+    handleFilterReset
   } = useLogFilterLogic({
     logs: logsData,
     accessToken,
@@ -253,55 +237,52 @@ export default function SpendLogsTable({
     isCustomDate,
     setCurrentPage,
     userID,
-    userRole,
-  });
+    userRole
+  })
 
-  const fetchKeyHashForAlias = useCallback(
-    async (keyAlias: string) => {
-      if (!accessToken) return;
+  const fetchKeyHashForAlias = useCallback(async (keyAlias: string) => {
+    if (!accessToken) return;
+    
+    try {
+      const response = await keyListCall(
+        accessToken,
+        null,
+        null,
+        keyAlias,
+        null,
+        null,
+        currentPage,
+        pageSize
+      );
 
-      try {
-        const response = await keyListCall(
-          accessToken,
-          null,
-          null,
-          keyAlias,
-          null,
-          null,
-          currentPage,
-          pageSize
-        );
+      const selectedKey = response.keys.find(
+        (key: any) => key.key_alias === keyAlias
+      );
 
-        const selectedKey = response.keys.find(
-          (key: any) => key.key_alias === keyAlias
-        );
-
-        if (selectedKey) {
-          setSelectedKeyHash(selectedKey.token);
-        }
-      } catch (error) {
-        console.error("Error fetching key hash for alias:", error);
+      if (selectedKey) {
+        setSelectedKeyHash(selectedKey.token);
       }
-    },
-    [accessToken, currentPage, pageSize]
-  );
+    } catch (error) {
+      console.error("Error fetching key hash for alias:", error);
+    }
+  }, [accessToken, currentPage, pageSize]);
 
   // Add this effect to update selected filters when filter changes
   useEffect(() => {
-    if (!accessToken) return;
+    if(!accessToken) return;
 
-    if (filters["Team ID"]) {
-      setSelectedTeamId(filters["Team ID"]);
+    if (filters['Team ID']) {
+      setSelectedTeamId(filters['Team ID']);
     } else {
       setSelectedTeamId("");
     }
-    setSelectedStatus(filters["Status"] || "");
-    setSelectedModel(filters["Model"] || "");
-
-    if (filters["Key Hash"]) {
-      setSelectedKeyHash(filters["Key Hash"]);
-    } else if (filters["Key Alias"]) {
-      fetchKeyHashForAlias(filters["Key Alias"]);
+    setSelectedStatus(filters['Status'] || "");
+    setSelectedModel(filters['Model'] || "");
+    
+    if (filters['Key Hash']) {
+      setSelectedKeyHash(filters['Key Hash']);
+    } else if (filters['Key Alias']) {
+      fetchKeyHashForAlias(filters['Key Alias']);
     } else {
       setSelectedKeyHash("");
     }
@@ -311,12 +292,8 @@ export default function SpendLogsTable({
   const sessionLogs = useQuery<PaginatedResponse>({
     queryKey: ["sessionLogs", selectedSessionId],
     queryFn: async () => {
-      if (!accessToken || !selectedSessionId)
-        return { data: [], total: 0, page: 1, page_size: 50, total_pages: 1 };
-      const response = await sessionSpendLogsCall(
-        accessToken,
-        selectedSessionId
-      );
+      if (!accessToken || !selectedSessionId) return { data: [], total: 0, page: 1, page_size: 50, total_pages: 1 };
+      const response = await sessionSpendLogsCall(accessToken, selectedSessionId);
       // If the API returns an array, wrap it in the same shape as PaginatedResponse
       return {
         data: response.data || response || [],
@@ -333,9 +310,7 @@ export default function SpendLogsTable({
   useEffect(() => {
     if (logs.data?.data && expandedRequestId) {
       // Check if the expanded request ID still exists in the new data
-      const stillExists = logs.data.data.some(
-        (log) => log.request_id === expandedRequestId
-      );
+      const stillExists = logs.data.data.some(log => log.request_id === expandedRequestId);
       if (!stillExists) {
         // If the request ID no longer exists in the data, clear the expanded state
         setExpandedRequestId(null);
@@ -348,28 +323,27 @@ export default function SpendLogsTable({
   }
 
   const filteredData =
-    filteredLogs.data
-      .filter((log) => {
-        const matchesSearch =
-          !searchTerm ||
-          log.request_id.includes(searchTerm) ||
-          log.model.includes(searchTerm) ||
-          (log.user && log.user.includes(searchTerm));
-
-        // No need for additional filtering since we're now handling this in the API call
-        return matchesSearch;
-      })
-      .map((log) => ({
-        ...log,
-        onKeyHashClick: (keyHash: string) => setSelectedKeyIdInfoView(keyHash),
-        onSessionClick: (sessionId: string) => {
-          if (sessionId) setSelectedSessionId(sessionId);
-        },
-      })) || [];
+    filteredLogs.data.filter((log) => {
+      const matchesSearch =
+        !searchTerm ||
+        log.request_id.includes(searchTerm) ||
+        log.model.includes(searchTerm) ||
+        (log.user && log.user.includes(searchTerm));
+      
+      // No need for additional filtering since we're now handling this in the API call
+      return matchesSearch;
+      
+    }).map(log => ({
+      ...log,
+      onKeyHashClick: (keyHash: string) => setSelectedKeyIdInfoView(keyHash),
+      onSessionClick: (sessionId: string) => {
+        if (sessionId) setSelectedSessionId(sessionId);
+      },
+    })) || [];
 
   // For session logs, add onKeyHashClick/onSessionClick as well
   const sessionData =
-    sessionLogs.data?.data?.map((log) => ({
+    sessionLogs.data?.data?.map(log => ({
       ...log,
       onKeyHashClick: (keyHash: string) => setSelectedKeyIdInfoView(keyHash),
       onSessionClick: (sessionId: string) => {},
@@ -383,21 +357,21 @@ export default function SpendLogsTable({
   // Add this function to format the time range display
   const getTimeRangeDisplay = () => {
     if (isCustomDate) {
-      return `${moment(startTime).format("MMM D, h:mm A")} - ${moment(endTime).format("MMM D, h:mm A")}`;
+      return `${moment(startTime).format('MMM D, h:mm A')} - ${moment(endTime).format('MMM D, h:mm A')}`;
     }
-
+    
     const now = moment();
     const start = moment(startTime);
-    const diffMinutes = now.diff(start, "minutes");
-
-    if (diffMinutes <= 15) return "Last 15 Minutes";
-    if (diffMinutes <= 60) return "Last Hour";
-
-    const diffHours = now.diff(start, "hours");
-    if (diffHours <= 4) return "Last 4 Hours";
-    if (diffHours <= 24) return "Last 24 Hours";
-    if (diffHours <= 168) return "Last 7 Days";
-    return `${start.format("MMM D")} - ${now.format("MMM D")}`;
+    const diffMinutes = now.diff(start, 'minutes');
+    
+    if (diffMinutes <= 15) return 'Last 15 Minutes';
+    if (diffMinutes <= 60) return 'Last Hour';
+    
+    const diffHours = now.diff(start, 'hours');
+    if (diffHours <= 4) return 'Last 4 Hours';
+    if (diffHours <= 24) return 'Last 24 Hours';
+    if (diffHours <= 168) return 'Last 7 Days';
+    return `${start.format('MMM D')} - ${now.format('MMM D')}`;
   };
 
   const handleRowExpand = (requestId: string | null) => {
@@ -406,70 +380,57 @@ export default function SpendLogsTable({
 
   const logFilterOptions: FilterOption[] = [
     {
-      name: "Team ID",
-      label: "Team ID",
+      name: 'Team ID',
+      label: 'Team ID',
       isSearchable: true,
       searchFn: async (searchText: string) => {
         if (!allTeams || allTeams.length === 0) return [];
-        const filtered = allTeams.filter((team: Team) => {
-          return (
-            team.team_id.toLowerCase().includes(searchText.toLowerCase()) ||
-            (team.team_alias &&
-              team.team_alias.toLowerCase().includes(searchText.toLowerCase()))
-          );
+        const filtered = allTeams.filter((team: Team) =>{
+          return team.team_id.toLowerCase().includes(searchText.toLowerCase()) ||
+          (team.team_alias && team.team_alias.toLowerCase().includes(searchText.toLowerCase()))
         });
         return filtered.map((team: Team) => ({
           label: `${team.team_alias || team.team_id} (${team.team_id})`,
-          value: team.team_id,
+          value: team.team_id
         }));
-      },
+      }
     },
     {
-      name: "Status",
-      label: "Status",
+      name:'Status',
+      label:'Status',
       isSearchable: false,
       options: [
-        { label: "Success", value: "success" },
-        { label: "Failure", value: "failure" },
-      ],
+        { label: 'Success', value: 'success' },
+        { label: 'Failure', value: 'failure' }
+      ]
     },
     {
-      name: "Model",
-      label: "Model",
-      isSearchable: true,
-      searchFn: async (searchText: string) => {
-        if (!allModels || allModels.length === 0) return [];
-        const filtered = allModels.filter((model: string) => {
-          return model.toLowerCase().includes(searchText.toLowerCase());
-        });
-        return filtered.map((model: string) => ({
-          label: model,
-          value: model,
-        }));
-      },
+      name: 'Model',
+      label: 'Model',
+      isSearchable: false,
     },
     {
-      name: "Key Alias",
-      label: "Key Alias",
+      name: 'Key Alias',
+      label: 'Key Alias',
       isSearchable: true,
       searchFn: async (searchText: string) => {
         if (!accessToken) return [];
         const keyAliases = await fetchAllKeyAliases(accessToken);
-        const filtered = keyAliases.filter((alias) =>
+        const filtered = keyAliases.filter(alias => 
           alias.toLowerCase().includes(searchText.toLowerCase())
         );
-        return filtered.map((alias) => ({
+        return filtered.map(alias => ({
           label: alias,
-          value: alias,
+          value: alias
         }));
-      },
+      }
     },
     {
-      name: "Key Hash",
-      label: "Key Hash",
+      name: 'Key Hash',
+      label: 'Key Hash',
       isSearchable: false,
     },
-  ];
+  ]
 
   // When a session is selected, render the SessionView component
   if (selectedSessionId && sessionLogs.data) {
@@ -486,6 +447,7 @@ export default function SpendLogsTable({
 
   return (
     <div className="w-full p-6">
+
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">
           {selectedSessionId ? (
@@ -503,18 +465,8 @@ export default function SpendLogsTable({
           )}
         </h1>
       </div>
-      {selectedKeyInfo &&
-      selectedKeyIdInfoView &&
-      selectedKeyInfo.api_key === selectedKeyIdInfoView ? (
-        <KeyInfoView
-          keyId={selectedKeyIdInfoView}
-          keyData={selectedKeyInfo}
-          accessToken={accessToken}
-          userID={userID}
-          userRole={userRole}
-          teams={allTeams}
-          onClose={() => setSelectedKeyIdInfoView(null)}
-        />
+      {selectedKeyInfo && selectedKeyIdInfoView && selectedKeyInfo.api_key === selectedKeyIdInfoView ? (
+        <KeyInfoView keyId={selectedKeyIdInfoView} keyData={selectedKeyInfo} accessToken={accessToken} userID={userID} userRole={userRole} teams={allTeams} onClose={() => setSelectedKeyIdInfoView(null)} />
       ) : selectedSessionId ? (
         <div className="bg-white rounded-lg shadow">
           <DataTable
@@ -527,129 +479,42 @@ export default function SpendLogsTable({
         </div>
       ) : (
         <>
-          <FilterComponent
-            options={logFilterOptions}
-            onApplyFilters={handleFilterChange}
-            onResetFilters={handleFilterReset}
-          />
-          <div className="bg-white rounded-lg shadow">
-            <div className="border-b px-6 py-4">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="relative w-64">
-                    <input
-                      type="text"
-                      placeholder="Search by Request ID"
-                      className="w-full px-3 py-2 pl-8 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+        <FilterComponent options={logFilterOptions} onApplyFilters={handleFilterChange} onResetFilters={handleFilterReset} />
+        <div className="bg-white rounded-lg shadow">
+          <div className="border-b px-6 py-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative w-64">
+                  <input
+                    type="text"
+                    placeholder="Search by Request ID"
+                    className="w-full px-3 py-2 pl-8 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <svg
+                    className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
-                    <svg
-                      className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
+                  </svg>
+                </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="relative" ref={quickSelectRef}>
-                      <button
-                        onClick={() => setQuickSelectOpen(!quickSelectOpen)}
-                        className="px-3 py-2 text-sm border rounded-md hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        {getTimeRangeDisplay()}
-                      </button>
-
-                      {quickSelectOpen && (
-                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border p-2 z-50">
-                          <div className="space-y-1">
-                            {[
-                              {
-                                label: "Last 15 Minutes",
-                                value: 15,
-                                unit: "minutes",
-                              },
-                              { label: "Last Hour", value: 1, unit: "hours" },
-                              {
-                                label: "Last 4 Hours",
-                                value: 4,
-                                unit: "hours",
-                              },
-                              {
-                                label: "Last 24 Hours",
-                                value: 24,
-                                unit: "hours",
-                              },
-                              { label: "Last 7 Days", value: 7, unit: "days" },
-                            ].map((option) => (
-                              <button
-                                key={option.label}
-                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-md ${
-                                  getTimeRangeDisplay() === option.label
-                                    ? "bg-blue-50 text-blue-600"
-                                    : ""
-                                }`}
-                                onClick={() => {
-                                  setEndTime(
-                                    moment().format("YYYY-MM-DDTHH:mm")
-                                  );
-                                  setStartTime(
-                                    moment()
-                                      .subtract(
-                                        option.value,
-                                        option.unit as any
-                                      )
-                                      .format("YYYY-MM-DDTHH:mm")
-                                  );
-                                  setQuickSelectOpen(false);
-                                  setIsCustomDate(false);
-                                }}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
-                            <div className="border-t my-2" />
-                            <button
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-md ${
-                                isCustomDate ? "bg-blue-50 text-blue-600" : ""
-                              }`}
-                              onClick={() => setIsCustomDate(!isCustomDate)}
-                            >
-                              Custom Range
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
+                <div className="flex items-center gap-2">
+                  <div className="relative" ref={quickSelectRef}>
                     <button
-                      onClick={handleRefresh}
+                      onClick={() => setQuickSelectOpen(!quickSelectOpen)}
                       className="px-3 py-2 text-sm border rounded-md hover:bg-gray-50 flex items-center gap-2"
-                      title="Refresh data"
                     >
                       <svg
-                        className={`w-4 h-4 ${logs.isFetching ? "animate-spin" : ""}`}
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -658,107 +523,176 @@ export default function SpendLogsTable({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      <span>Refresh</span>
+                      {getTimeRangeDisplay()}
                     </button>
-                  </div>
 
-                  {isCustomDate && (
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <input
-                          type="datetime-local"
-                          value={startTime}
-                          onChange={(e) => {
-                            setStartTime(e.target.value);
-                            setCurrentPage(1);
-                          }}
-                          className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                    {quickSelectOpen && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border p-2 z-50">
+                        <div className="space-y-1">
+                          {[
+                            { label: "Last 15 Minutes", value: 15, unit: "minutes" },
+                            { label: "Last Hour", value: 1, unit: "hours" },
+                            { label: "Last 4 Hours", value: 4, unit: "hours" },
+                            { label: "Last 24 Hours", value: 24, unit: "hours" },
+                            { label: "Last 7 Days", value: 7, unit: "days" },
+                          ].map((option) => (
+                            <button
+                              key={option.label}
+                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-md ${
+                                getTimeRangeDisplay() === option.label ? 'bg-blue-50 text-blue-600' : ''
+                              }`}
+                              onClick={() => {
+                                setEndTime(moment().format("YYYY-MM-DDTHH:mm"));
+                                setStartTime(
+                                  moment()
+                                    .subtract(option.value, option.unit as any)
+                                    .format("YYYY-MM-DDTHH:mm")
+                                );
+                                setQuickSelectOpen(false);
+                                setIsCustomDate(false);
+                              }}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                          <div className="border-t my-2" />
+                          <button
+                            className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-md ${
+                              isCustomDate ? 'bg-blue-50 text-blue-600' : ''
+                            }`}
+                            onClick={() => setIsCustomDate(!isCustomDate)}
+                          >
+                            Custom Range
+                          </button>
+                        </div>
                       </div>
-                      <span className="text-gray-500">to</span>
-                      <div>
-                        <input
-                          type="datetime-local"
-                          value={endTime}
-                          onChange={(e) => {
-                            setEndTime(e.target.value);
-                            setCurrentPage(1);
-                          }}
-                          className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={handleRefresh}
+                    className="px-3 py-2 text-sm border rounded-md hover:bg-gray-50 flex items-center gap-2"
+                    title="Refresh data"
+                  >
+                    <svg
+                      className={`w-4 h-4 ${logs.isFetching ? 'animate-spin' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    <span>Refresh</span>
+                  </button>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-700">
-                    Showing{" "}
-                    {logs.isLoading
-                      ? "..."
-                      : filteredLogs
-                        ? (currentPage - 1) * pageSize + 1
-                        : 0}{" "}
-                    -{" "}
-                    {logs.isLoading
-                      ? "..."
-                      : filteredLogs
-                        ? Math.min(currentPage * pageSize, filteredLogs.total)
-                        : 0}{" "}
-                    of{" "}
-                    {logs.isLoading
-                      ? "..."
-                      : filteredLogs
-                        ? filteredLogs.total
-                        : 0}{" "}
-                    results
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-700">
-                      Page {logs.isLoading ? "..." : currentPage} of{" "}
-                      {logs.isLoading
-                        ? "..."
-                        : filteredLogs
-                          ? filteredLogs.total_pages
-                          : 1}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={logs.isLoading || currentPage === 1}
-                      className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentPage((p) =>
-                          Math.min(filteredLogs.total_pages || 1, p + 1)
-                        )
-                      }
-                      disabled={
-                        logs.isLoading ||
-                        currentPage === (filteredLogs.total_pages || 1)
-                      }
-                      className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
+                {isCustomDate && (
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <input
+                        type="datetime-local"
+                        value={startTime}
+                        onChange={(e) => {
+                          setStartTime(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <span className="text-gray-500">to</span>
+                    <div>
+                      <input
+                        type="datetime-local"
+                        value={endTime}
+                        onChange={(e) => {
+                          setEndTime(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
                   </div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-700">
+                  Showing{" "}
+                  {logs.isLoading
+                    ? "..."
+                    : filteredLogs
+                    ? (currentPage - 1) * pageSize + 1
+                    : 0}{" "}
+                  -{" "}
+                  {logs.isLoading
+                    ? "..."
+                    : filteredLogs
+                    ? Math.min(currentPage * pageSize, filteredLogs.total)
+                    : 0}{" "}
+                  of{" "}
+                  {logs.isLoading
+                    ? "..."
+                    : filteredLogs
+                    ? filteredLogs.total
+                    : 0}{" "}
+                  results
+                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-700">
+                    Page {logs.isLoading ? "..." : currentPage} of{" "}
+                    {logs.isLoading
+                      ? "..."
+                      : filteredLogs
+                      ? filteredLogs.total_pages
+                      : 1}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) => Math.max(1, p - 1))
+                    }
+                    disabled={logs.isLoading || currentPage === 1}
+                    className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) =>
+                        Math.min(
+                          filteredLogs.total_pages || 1,
+                          p + 1,
+                        ),
+                      )
+                    }
+                    disabled={
+                      logs.isLoading ||
+                      currentPage === (filteredLogs.total_pages || 1)
+                    }
+                    className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
-            <DataTable
-              columns={columns}
-              data={filteredData}
-              renderSubComponent={RequestViewer}
-              getRowCanExpand={() => true}
-            />
           </div>
+          <DataTable
+            columns={columns}
+            data={filteredData}
+            renderSubComponent={RequestViewer}
+            getRowCanExpand={() => true}
+          />
+        </div>
         </>
-      )}
+      )} 
     </div>
   );
 }
@@ -790,18 +724,13 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
   const metadata = row.original.metadata || {};
   const hasError = metadata.status === "failure";
   const errorInfo = hasError ? metadata.error_information : null;
-
+  
   // Check if request/response data is missing
-  const hasMessages =
-    row.original.messages &&
-    (Array.isArray(row.original.messages)
-      ? row.original.messages.length > 0
-      : Object.keys(row.original.messages).length > 0);
-  const hasResponse =
-    row.original.response &&
-    Object.keys(formatData(row.original.response)).length > 0;
+  const hasMessages = row.original.messages && 
+    (Array.isArray(row.original.messages) ? row.original.messages.length > 0 : Object.keys(row.original.messages).length > 0);
+  const hasResponse = row.original.response && Object.keys(formatData(row.original.response)).length > 0;
   const missingData = !hasMessages && !hasResponse;
-
+  
   // Format the response with error details if present
   const formattedResponse = () => {
     if (hasError && errorInfo) {
@@ -809,41 +738,31 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
         error: {
           message: errorInfo.error_message || "An error occurred",
           type: errorInfo.error_class || "error",
-          code: errorInfo.error_code || "unknown",
-          param: null,
-        },
+          code: errorInfo.error_code  || "unknown",
+          param: null
+        }
       };
     }
     return formatData(row.original.response);
   };
-
+  
   // Extract vector store request metadata if available
-  const hasVectorStoreData =
-    metadata.vector_store_request_metadata &&
-    Array.isArray(metadata.vector_store_request_metadata) &&
+  const hasVectorStoreData = metadata.vector_store_request_metadata && 
+    Array.isArray(metadata.vector_store_request_metadata) && 
     metadata.vector_store_request_metadata.length > 0;
 
   // Extract guardrail information from metadata if available
-  const hasGuardrailData =
-    row.original.metadata && row.original.metadata.guardrail_information;
-
+  const hasGuardrailData = row.original.metadata && row.original.metadata.guardrail_information;
+  
   // Calculate total masked entities if guardrail data exists
   const getTotalMaskedEntities = (): number => {
-    if (
-      !hasGuardrailData ||
-      !row.original.metadata?.guardrail_information.masked_entity_count
-    ) {
+    if (!hasGuardrailData || !row.original.metadata?.guardrail_information.masked_entity_count) {
       return 0;
     }
-    return Object.values(
-      row.original.metadata.guardrail_information.masked_entity_count
-    ).reduce(
-      (sum: number, count: any) =>
-        sum + (typeof count === "number" ? count : 0),
-      0
-    );
+    return Object.values(row.original.metadata.guardrail_information.masked_entity_count)
+      .reduce((sum: number, count: any) => sum + (typeof count === 'number' ? count : 0), 0);
   };
-
+  
   const totalMaskedEntities = getTotalMaskedEntities();
 
   return (
@@ -857,9 +776,7 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
           <div className="space-y-2">
             <div className="flex">
               <span className="font-medium w-1/3">Request ID:</span>
-              <span className="font-mono text-sm">
-                {row.original.request_id}
-              </span>
+              <span className="font-mono text-sm">{row.original.request_id}</span>
             </div>
             <div className="flex">
               <span className="font-medium w-1/3">Model:</span>
@@ -880,9 +797,7 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
             <div className="flex">
               <span className="font-medium w-1/3">API Base:</span>
               <Tooltip title={row.original.api_base || "-"}>
-                <span className="max-w-[15ch] truncate block">
-                  {row.original.api_base || "-"}
-                </span>
+                <span className="max-w-[15ch] truncate block">{row.original.api_base || "-"}</span>
               </Tooltip>
             </div>
             {row?.original?.requester_ip_address && (
@@ -895,12 +810,7 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
               <div className="flex">
                 <span className="font-medium w-1/3">Guardrail:</span>
                 <div>
-                  <span className="font-mono">
-                    {
-                      row.original.metadata!.guardrail_information
-                        .guardrail_name
-                    }
-                  </span>
+                  <span className="font-mono">{row.original.metadata!.guardrail_information.guardrail_name}</span>
                   {totalMaskedEntities > 0 && (
                     <span className="ml-2 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
                       {totalMaskedEntities} masked
@@ -913,10 +823,7 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
           <div className="space-y-2">
             <div className="flex">
               <span className="font-medium w-1/3">Tokens:</span>
-              <span>
-                {row.original.total_tokens} ({row.original.prompt_tokens}+
-                {row.original.completion_tokens})
-              </span>
+              <span>{row.original.total_tokens} ({row.original.prompt_tokens}+{row.original.completion_tokens})</span>
             </div>
             <div className="flex">
               <span className="font-medium w-1/3">Cost:</span>
@@ -926,22 +833,17 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
               <span className="font-medium w-1/3">Cache Hit:</span>
               <span>{row.original.cache_hit}</span>
             </div>
-
+            
             <div className="flex">
               <span className="font-medium w-1/3">Status:</span>
-              <span
-                className={`px-2 py-1 rounded-md text-xs font-medium inline-block text-center w-16 ${
-                  (row.original.metadata?.status || "Success").toLowerCase() !==
-                  "failure"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                }`}
-              >
-                {(row.original.metadata?.status || "Success").toLowerCase() !==
-                "failure"
-                  ? "Success"
-                  : "Failure"}
+              <span className={`px-2 py-1 rounded-md text-xs font-medium inline-block text-center w-16 ${
+                (row.original.metadata?.status || "Success").toLowerCase() !== "failure"
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {(row.original.metadata?.status || "Success").toLowerCase() !== "failure" ? "Success" : "Failure"}
               </span>
+              
             </div>
             <div className="flex">
               <span className="font-medium w-1/3">Start Time:</span>
@@ -983,67 +885,48 @@ export function RequestViewer({ row }: { row: Row<LogEntry> }) {
       {hasError && errorInfo && <ErrorViewer errorInfo={errorInfo} />}
 
       {/* Tags Card - Only show if there are tags */}
-      {row.original.request_tags &&
-        Object.keys(row.original.request_tags).length > 0 && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-medium">Request Tags</h3>
-            </div>
-            <div className="p-4">
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(row.original.request_tags).map(
-                  ([key, value]) => (
-                    <span
-                      key={key}
-                      className="px-2 py-1 bg-gray-100 rounded-full text-xs"
-                    >
-                      {key}: {String(value)}
-                    </span>
-                  )
-                )}
-              </div>
+      {row.original.request_tags && Object.keys(row.original.request_tags).length > 0 && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h3 className="text-lg font-medium">Request Tags</h3>
+          </div>
+          <div className="p-4">
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(row.original.request_tags).map(([key, value]) => (
+                <span key={key} className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                  {key}: {String(value)}
+                </span>
+              ))}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Metadata Card - Only show if there's metadata */}
-      {row.original.metadata &&
-        Object.keys(row.original.metadata).length > 0 && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-medium">Metadata</h3>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    JSON.stringify(row.original.metadata, null, 2)
-                  );
-                }}
-                className="p-1 hover:bg-gray-200 rounded"
-                title="Copy metadata"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
-            <div className="p-4 overflow-auto max-h-64">
-              <pre className="text-xs font-mono whitespace-pre-wrap break-all">
-                {JSON.stringify(row.original.metadata, null, 2)}
-              </pre>
-            </div>
+      {row.original.metadata && Object.keys(row.original.metadata).length > 0 && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h3 className="text-lg font-medium">Metadata</h3>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(JSON.stringify(row.original.metadata, null, 2));
+              }}
+              className="p-1 hover:bg-gray-200 rounded"
+              title="Copy metadata"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
           </div>
-        )}
+          <div className="p-4 overflow-auto max-h-64">
+            <pre className="text-xs font-mono whitespace-pre-wrap break-all">
+              {JSON.stringify(row.original.metadata, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

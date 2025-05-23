@@ -95,7 +95,7 @@ jobs:
             pip install opentelemetry-api==1.25.0
             pip install opentelemetry-sdk==1.25.0
             pip install opentelemetry-exporter-otlp==1.25.0
-            pip install openai==1.68.2
+            pip install openai==1.81.0
             pip install prisma==0.11.0
             pip install "detect_secrets==1.5.0"
             pip install "httpx==0.24.1"
@@ -142,10 +142,13 @@ jobs:
           name: Linting Testing
           command: |
             cd litellm
+            pip install "cryptography<40.0.0"
             python -m pip install types-requests types-setuptools types-redis types-PyYAML
-            if ! python -m mypy . --ignore-missing-imports; then
-              echo "mypy detected errors"
-              exit 1
+            if ! python -m mypy . \
+                --config-file mypy.ini \
+                --ignore-missing-imports; then
+                echo "mypy detected errors"
+                exit 1
             fi
             cd ..
 
@@ -215,7 +218,7 @@ jobs:
             pip install opentelemetry-api==1.25.0
             pip install opentelemetry-sdk==1.25.0
             pip install opentelemetry-exporter-otlp==1.25.0
-            pip install openai==1.68.2
+            pip install openai==1.81.0
             pip install prisma==0.11.0
             pip install "detect_secrets==1.5.0"
             pip install "httpx==0.24.1"
@@ -322,7 +325,7 @@ jobs:
             pip install opentelemetry-api==1.25.0
             pip install opentelemetry-sdk==1.25.0
             pip install opentelemetry-exporter-otlp==1.25.0
-            pip install openai==1.68.2
+            pip install openai==1.81.0
             pip install prisma==0.11.0
             pip install "detect_secrets==1.5.0"
             pip install "httpx==0.24.1"
@@ -578,7 +581,7 @@ jobs:
             pip install opentelemetry-api==1.25.0
             pip install opentelemetry-sdk==1.25.0
             pip install opentelemetry-exporter-otlp==1.25.0
-            pip install openai==1.68.2
+            pip install openai==1.81.0
             pip install prisma==0.11.0
             pip install "detect_secrets==1.5.0"
             pip install "httpx==0.24.1"
@@ -1469,7 +1472,7 @@ jobs:
             pip install "aiodynamo==23.10.1"
             pip install "asyncio==3.4.3"
             pip install "PyGithub==1.59.1"
-            pip install "openai==1.68.2"
+            pip install "openai==1.81.0"
       - run:
           name: Install Grype
           command: |
@@ -1607,7 +1610,7 @@ jobs:
             pip install "aiodynamo==23.10.1"
             pip install "asyncio==3.4.3"
             pip install "PyGithub==1.59.1"
-            pip install "openai==1.68.2"
+            pip install "openai==1.81.0"
             # Run pytest and generate JUnit XML report
       - run:
           name: Build Docker image
@@ -1730,7 +1733,7 @@ jobs:
             pip install "aiodynamo==23.10.1"
             pip install "asyncio==3.4.3"
             pip install "PyGithub==1.59.1"
-            pip install "openai==1.68.2"
+            pip install "openai==1.81.0"
       - run:
           name: Build Docker image
           command: docker build -t my-app:latest -f ./docker/Dockerfile.database .
@@ -2253,7 +2256,7 @@ jobs:
             pip install "pytest-asyncio==0.21.1"
             pip install "google-cloud-aiplatform==1.43.0"
             pip install aiohttp
-            pip install "openai==1.68.2"
+            pip install "openai==1.81.0"
             pip install "assemblyai==0.37.0"
             python -m pip install --upgrade pip
             pip install "pydantic==2.10.2"
@@ -2641,7 +2644,7 @@ jobs:
             pip install "pytest-retry==1.6.3"
             pip install "pytest-asyncio==0.21.1"
             pip install aiohttp
-            pip install "openai==1.68.2"
+            pip install "openai==1.81.0"
             python -m pip install --upgrade pip
             pip install "pydantic==2.10.2"
             pip install "pytest==7.3.1"

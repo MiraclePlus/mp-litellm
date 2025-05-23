@@ -16,6 +16,7 @@ from litellm.types.guardrails import (
     Guardrail,
     GuardrailEventHooks,
     GuardrailInfoResponse,
+    GuardrailParamUITypes,
     GuardrailUIAddGuardrailSettings,
     LakeraV2GuardrailConfigModel,
     ListGuardrailsResponse,
@@ -23,7 +24,7 @@ from litellm.types.guardrails import (
     PatchGuardrailRequest,
     PiiAction,
     PiiEntityType,
-    PresidioConfigModel,
+    PresidioPresidioConfigModelUserInterface,
     SupportedGuardrailIntegrations,
 )
 
@@ -143,6 +144,7 @@ async def list_guardrails_v2():
     }
     ```
     """
+    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from litellm.proxy.proxy_server import prisma_client
 
     if prisma_client is None:
@@ -154,6 +156,7 @@ async def list_guardrails_v2():
         )
 
         guardrail_configs: List[GuardrailInfoResponse] = []
+        seen_guardrail_ids = set()
         for guardrail in guardrails:
             guardrail_configs.append(
                 GuardrailInfoResponse(
@@ -163,8 +166,26 @@ async def list_guardrails_v2():
                     guardrail_info=guardrail.get("guardrail_info"),
                     created_at=guardrail.get("created_at"),
                     updated_at=guardrail.get("updated_at"),
+                    guardrail_definition_location="db",
                 )
             )
+            seen_guardrail_ids.add(guardrail.get("guardrail_id"))
+
+        # get guardrails initialized on litellm config.yaml
+        in_memory_guardrails = IN_MEMORY_GUARDRAIL_HANDLER.list_in_memory_guardrails()
+        for guardrail in in_memory_guardrails:
+            # only add guardrails that are not in DB guardrail list already
+            if guardrail.get("guardrail_id") not in seen_guardrail_ids:
+                guardrail_configs.append(
+                    GuardrailInfoResponse(
+                        guardrail_id=guardrail.get("guardrail_id"),
+                        guardrail_name=guardrail.get("guardrail_name"),
+                        litellm_params=dict(guardrail.get("litellm_params") or {}),
+                        guardrail_info=dict(guardrail.get("guardrail_info") or {}),
+                        guardrail_definition_location="config",
+                    )
+                )
+                seen_guardrail_ids.add(guardrail.get("guardrail_id"))
 
         return ListGuardrailsResponse(guardrails=guardrail_configs)
     except Exception as e:
@@ -290,6 +311,7 @@ async def get_guardrail(guardrail_id: str):
         result = await GUARDRAIL_REGISTRY.get_guardrail_by_id_from_db(
             guardrail_id=guardrail_id, prisma_client=prisma_client
         )
+
         if result is None:
             raise HTTPException(
                 status_code=404, detail=f"Guardrail with ID {guardrail_id} not found"
@@ -410,6 +432,7 @@ async def delete_guardrail(guardrail_id: str):
     }
     ```
     """
+    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from litellm.proxy.proxy_server import prisma_client
 
     if prisma_client is None:
@@ -428,6 +451,11 @@ async def delete_guardrail(guardrail_id: str):
 
         result = await GUARDRAIL_REGISTRY.delete_guardrail_from_db(
             guardrail_id=guardrail_id, prisma_client=prisma_client
+        )
+
+        # delete in memory guardrail
+        IN_MEMORY_GUARDRAIL_HANDLER.delete_in_memory_guardrail(
+            guardrail_id=guardrail_id,
         )
         return result
     except HTTPException as e:
@@ -487,6 +515,7 @@ async def patch_guardrail(guardrail_id: str, request: PatchGuardrailRequest):
     }
     ```
     """
+    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from litellm.proxy.proxy_server import prisma_client
 
     if prisma_client is None:
@@ -510,7 +539,7 @@ async def patch_guardrail(guardrail_id: str, request: PatchGuardrailRequest):
             else existing_guardrail.get("guardrail_name")
         )
 
-        # Update litellm_params if default_on is provided
+        # Update litellm_params if default_on is provided or pii_entities_config is provided
         litellm_params = LitellmParams(
             **dict(existing_guardrail.get("litellm_params", {}))
         )
@@ -520,6 +549,14 @@ async def patch_guardrail(guardrail_id: str, request: PatchGuardrailRequest):
         ):
             litellm_params.default_on = request.litellm_params.default_on
 
+        if (
+            request.litellm_params is not None
+            and request.litellm_params.pii_entities_config is not None
+        ):
+            litellm_params.pii_entities_config = (
+                request.litellm_params.pii_entities_config
+            )
+
         # Update guardrail_info if provided
         guardrail_info = (
             request.guardrail_info
@@ -528,14 +565,21 @@ async def patch_guardrail(guardrail_id: str, request: PatchGuardrailRequest):
         )
 
         # Create the guardrail object
+        guardrail = Guardrail(
+            guardrail_name=guardrail_name or "",
+            litellm_params=litellm_params,
+            guardrail_info=guardrail_info,
+        )
         result = await GUARDRAIL_REGISTRY.update_guardrail_in_db(
             guardrail_id=guardrail_id,
-            guardrail=Guardrail(
-                guardrail_name=guardrail_name or "",
-                litellm_params=litellm_params,
-                guardrail_info=guardrail_info,
-            ),
+            guardrail=guardrail,
             prisma_client=prisma_client,
+        )
+
+        # update in memory guardrail
+        IN_MEMORY_GUARDRAIL_HANDLER.update_in_memory_guardrail(
+            guardrail_id=guardrail_id,
+            guardrail=guardrail,
         )
         return result
     except HTTPException as e:
@@ -582,6 +626,7 @@ async def get_guardrail_info(guardrail_id: str):
     }
     ```
     """
+    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from litellm.proxy.proxy_server import prisma_client
 
     if prisma_client is None:
@@ -592,6 +637,11 @@ async def get_guardrail_info(guardrail_id: str):
             guardrail_id=guardrail_id, prisma_client=prisma_client
         )
         if result is None:
+            result = IN_MEMORY_GUARDRAIL_HANDLER.get_guardrail_by_id(
+                guardrail_id=guardrail_id
+            )
+
+        if result is None:
             raise HTTPException(
                 status_code=404, detail=f"Guardrail with ID {guardrail_id} not found"
             )
@@ -599,8 +649,8 @@ async def get_guardrail_info(guardrail_id: str):
         return GuardrailInfoResponse(
             guardrail_id=result.get("guardrail_id"),
             guardrail_name=result.get("guardrail_name"),
-            litellm_params=result.get("litellm_params"),
-            guardrail_info=result.get("guardrail_info"),
+            litellm_params=dict(result.get("litellm_params") or {}),
+            guardrail_info=dict(result.get("guardrail_info") or {}),
             created_at=result.get("created_at"),
             updated_at=result.get("updated_at"),
         )
@@ -649,11 +699,17 @@ def _get_fields_from_model(model_class: Type[BaseModel]) -> List[Dict[str, Any]]
         # Check if this field is in the required_fields class variable
         required = field.is_required()
 
+        field_type: Optional[GuardrailParamUITypes] = None
+        field_json_schema_extra = getattr(field, "json_schema_extra", {})
+        if field_json_schema_extra and "ui_type" in field_json_schema_extra:
+            field_type = field_json_schema_extra["ui_type"]
+
         fields.append(
             {
                 "param": field_name,
                 "description": description,
                 "required": required,
+                "type": field_type.value if field_type else None,
             }
         )
     return fields
@@ -696,6 +752,12 @@ async def get_provider_specific_params():
                 "param": "presidio_anonymizer_api_base",
                 "description": "Base URL for the Presidio anonymizer API",
                 "required": true
+            },
+            {
+                "param": "output_parse_pii",
+                "description": "Whether to parse PII in model outputs",
+                "required": false,
+                "type": "bool"
             }
         ]
     }
@@ -703,7 +765,7 @@ async def get_provider_specific_params():
     """
     # Get fields from the models
     bedrock_fields = _get_fields_from_model(BedrockGuardrailConfigModel)
-    presidio_fields = _get_fields_from_model(PresidioConfigModel)
+    presidio_fields = _get_fields_from_model(PresidioPresidioConfigModelUserInterface)
     lakera_v2_fields = _get_fields_from_model(LakeraV2GuardrailConfigModel)
 
     # Return the provider-specific parameters
