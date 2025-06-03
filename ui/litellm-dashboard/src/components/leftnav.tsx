@@ -155,6 +155,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               icon: child.icon,
               label: child.label,
               onClick: () => {
+                if (child.page === "external-link") {
+                  window.open(
+                    "http://llm-proxy.miracleplus.com:4000/public/identity-eval-chart",
+                    "_blank"
+                  );
+                  return;
+                }
                 const newSearchParams = new URLSearchParams(window.location.search);
                 newSearchParams.set('page', child.page);
                 window.history.pushState(null, '', `?${newSearchParams.toString()}`);
