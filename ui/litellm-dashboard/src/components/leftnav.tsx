@@ -2,7 +2,7 @@ import { Layout, Menu } from "antd";
 import Link from "next/link";
 import { List } from "postcss/lib/list";
 import { Text } from "@tremor/react";
-import { 
+import {
   KeyOutlined,
   PlayCircleOutlined,
   BlockOutlined,
@@ -65,10 +65,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     { key: "16", page: "model-hub", label: "Model Hub", icon: <AppstoreOutlined /> },
     { key: "15", page: "logs", label: "Logs", icon: <LineChartOutlined />},
     { key: "11", page: "guardrails", label: "Guardrails", icon: <SafetyOutlined />, roles: all_admin_roles },
-    { 
-      key: "experimental", 
+    {
+      key: "experimental",
       page: "experimental",
-      label: "Experimental", 
+      label: "Experimental",
       icon: <ExperimentOutlined />,
       children: [
         { key: "9", page: "caching", label: "Caching", icon: <DatabaseOutlined />, roles: all_admin_roles },
@@ -92,7 +92,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         { key: "8", page: "settings", label: "Logging & Alerts", icon: <SettingOutlined />, roles: all_admin_roles },
         { key: "13", page: "admin-panel", label: "Admin Settings", icon: <SettingOutlined />, roles: all_admin_roles },
       ]
-    }
+    },
+    {
+      key: "150",
+      page: "external-link",
+      label: "LLM Evaluation",
+      icon: <ApiOutlined />,
+    },
   ];
   // Find the menu item that matches the default page, including in submenus
   const findMenuItemKey = (page: string): string => {
@@ -115,12 +121,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   const filteredMenuItems = menuItems.filter(item => {
     // Check if parent item has roles and user has access
     const hasParentAccess = !item.roles || item.roles.includes(userRole);
-    
+
     if (!hasParentAccess) return false;
 
     // Filter children if they exist
     if (item.children) {
-      item.children = item.children.filter(child => 
+      item.children = item.children.filter(child =>
         !child.roles || child.roles.includes(userRole)
       );
     }
@@ -135,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Menu
           mode="inline"
           selectedKeys={[selectedMenuKey]}
-          style={{ 
+          style={{
             borderRight: 0,
             backgroundColor: 'transparent',
             fontSize: '14px',
