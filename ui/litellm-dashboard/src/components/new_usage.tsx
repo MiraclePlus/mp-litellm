@@ -17,7 +17,7 @@ import {
 } from "@tremor/react";
 import { AreaChart } from "@tremor/react";
 
-import { userDailyActivityCall, tagListCall } from "./networking";
+import { userDailyActivityCall, tagListCall, userListCall, UserInfo } from "./networking";
 import { Tag } from "./tag_management/types";
 import ViewUserSpend from "./view_user_spend";
 import TopKeyView from "./top_key_view";
@@ -27,6 +27,7 @@ import EntityUsage from './entity_usage';
 import { old_admin_roles, v2_admin_role_names, all_admin_roles, rolesAllowedToSeeUsage, rolesWithWriteAccess, internalUserRoles } from '../utils/roles';
 import { Team } from "./key_team_helpers/key_list";
 import { EntityList } from "./entity_usage";
+import { Select } from "antd";
 
 interface NewUsagePageProps {
   accessToken: string | null;
@@ -52,7 +53,9 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
     to: new Date(),
   });
 
-  const [allTags, setAllTags] = useState<EntityList[]>([]); 
+  const [allTags, setAllTags] = useState<EntityList[]>([]);
+  const [allUsers, setAllUsers] = useState<EntityList[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   const getAllTags = async () => {
     if (!accessToken) {
@@ -65,9 +68,26 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
     })));
   };
 
+  const getAllUsers = async () => {
+    if (!accessToken) {
+      return;
+    }
+    const users = await userListCall(accessToken);
+    setAllUsers(Object.values(users.users).map((user: UserInfo) => ({
+      label: user.user_email,
+      value: user.user_id
+    })));
+  };
+
   useEffect(() => {
     getAllTags();
   }, [accessToken]);
+
+  useEffect(() => {
+    if (all_admin_roles.includes(userRole || "")) {
+      getAllUsers();
+    }
+  }, [accessToken, userRole]);
 
   // Derived states from userSpendData
   const totalSpend = userSpendData.metadata?.total_spend || 0;
@@ -196,7 +216,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
         keySpend[key].metrics.cache_creation_input_tokens += metrics.metrics.cache_creation_input_tokens || 0;
       });
     });
-    
+
     return Object.entries(keySpend)
       .map(([api_key, metrics]) => ({
         api_key,
@@ -214,8 +234,8 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
     
     try {
       // Get first page
-      const firstPageData = await userDailyActivityCall(accessToken, startTime, endTime);
-      
+      const firstPageData = await userDailyActivityCall(accessToken, startTime, endTime, 1, selectedUsers);
+
       // Check if we need to fetch more pages
       if (firstPageData.metadata.total_pages > 10) {
         throw new Error("Too many pages of data (>10). Please select a smaller date range.");
@@ -248,7 +268,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
 
   useEffect(() => {
     fetchUserSpendData();
-  }, [accessToken, dateValue]);
+  }, [accessToken, dateValue, selectedUsers]);
 
   const modelMetrics = processActivityData(userSpendData, "models");
   const keyMetrics = processActivityData(userSpendData, "api_keys");
@@ -280,6 +300,21 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                   }}
                 />
               </Col>
+              {all_admin_roles.includes(userRole || "") && allUsers && allUsers.length > 0 && (
+                <Col>
+                  <Text>Filter by Users</Text>
+                  <Select
+                    mode="multiple"
+                    style={{ width: '100%' }}
+                    placeholder={`Select users to filter...`}
+                    value={selectedUsers}
+                    onChange={setSelectedUsers}
+                    options={allUsers}
+                    className="mt-2"
+                    allowClear
+                  />
+                </Col>
+              )}
             </Grid>
             <TabGroup>
               <TabList variant="solid" className="mt-1">
