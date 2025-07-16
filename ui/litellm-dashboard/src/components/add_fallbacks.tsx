@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button, TextInput, Grid, Col } from "@tremor/react";
 import { Select, SelectItem, MultiSelect, MultiSelectItem, Card, Metric, Text, Title, Subtitle, Accordion, AccordionHeader, AccordionBody, } from "@tremor/react";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { setCallbacksCall } from "./networking";
+import {modelInfoCall, setCallbacksCall} from "./networking";
 import {
   Button as Button2,
   Modal,
@@ -24,19 +24,20 @@ import { list } from "postcss";
 const { Option } = Select2;
 
 interface AddFallbacksProps {
-  models: string[] | undefined; 
+  models: string[] | undefined;
   accessToken: string;
   routerSettings: { [key: string]: any; }
   setRouterSettings: React.Dispatch<React.SetStateAction<{ [key: string]: any }>>;
 }
 
 const AddFallbacks: React.FC<AddFallbacksProps> = ({
-    models, 
+    models,
     accessToken,
     routerSettings,
     setRouterSettings
 }) => {
   const [form] = Form.useForm();
+  const [availableModelNames, setAvailableModelNames] = useState(models);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedModel, setSelectedModel] = useState("");
   const handleOk = () => {
@@ -90,6 +91,20 @@ const AddFallbacks: React.FC<AddFallbacksProps> = ({
   };
 
 
+    useEffect(() => {
+        if (models != undefined && models.length <= 0) {
+            modelAvailableCall(
+                accessToken,
+                "", ""
+            ).then(res => {
+                const available_model_names: string[] = res["data"].map(
+                    (element: { id: string }) => element.id
+                );
+                setAvailableModelNames(available_model_names);
+            })
+        }
+    }, []);
+
   return (
     <div>
       <Button className="mx-auto" onClick={() => setIsModalVisible(true)}>
@@ -111,14 +126,14 @@ const AddFallbacks: React.FC<AddFallbacksProps> = ({
           labelAlign="left"
         >
             <>
-              <Form.Item 
-                label="Public Model Name" 
+              <Form.Item
+                label="Public Model Name"
                 name="model_name"
                 rules={[{ required: true, message: 'Set the model to fallback for' }]}
                 help="required"
               >
                 <Select defaultValue={selectedModel}>
-                {models && models.map((model: string, index) => (
+                {availableModelNames && availableModelNames.map((model: string, index) => (
                     <SelectItem
                         key={index}
                         value={model}
@@ -131,15 +146,15 @@ const AddFallbacks: React.FC<AddFallbacksProps> = ({
                 </Select>
               </Form.Item>
 
-              <Form.Item 
-                label="Fallback Models" 
+              <Form.Item
+                label="Fallback Models"
                 name="models"
                 rules={[{ required: true, message: 'Please select a model' }]}
                 help="required"
               >
-                <MultiSelect value={models}>
-                    {models &&
-                      models.filter(data => data != selectedModel).map((model: string) => (
+                <MultiSelect value={availableModelNames}>
+                    {availableModelNames &&
+                      availableModelNames.filter(data => data != selectedModel).map((model: string) => (
                         (
                           <MultiSelectItem key={model} value={model}>
                             {model}
@@ -150,7 +165,7 @@ const AddFallbacks: React.FC<AddFallbacksProps> = ({
                 </MultiSelect>
               </Form.Item>
             </>
-          
+
           <div style={{ textAlign: "right", marginTop: "10px" }}>
             <Button2 htmlType="submit">Add Fallbacks</Button2>
           </div>

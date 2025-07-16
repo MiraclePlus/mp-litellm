@@ -33,7 +33,7 @@ import {
 import UsageDatePicker from "./shared/usage_date_picker";
 import { AreaChart } from "@tremor/react";
 
-import { userDailyActivityCall, tagListCall } from "./networking";
+import { userDailyActivityCall, tagListCall, userListCall, UserInfo } from "./networking";
 import { Tag } from "./tag_management/types";
 import ViewUserSpend from "./view_user_spend";
 import TopKeyView from "./top_key_view";
@@ -56,6 +56,7 @@ import {
 } from "../utils/roles";
 import { Team } from "./key_team_helpers/key_list";
 import { EntityList } from "./entity_usage";
+import { Select } from "antd";
 import { formatNumberWithCommas } from "@/utils/dataUtils";
 import { valueFormatterSpend } from "./usage/utils/value_formatters";
 
@@ -86,6 +87,8 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
   });
 
   const [allTags, setAllTags] = useState<EntityList[]>([]);
+  const [allUsers, setAllUsers] = useState<EntityList[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   const getAllTags = async () => {
     if (!accessToken) {
@@ -100,9 +103,26 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
     );
   };
 
+  const getAllUsers = async () => {
+    if (!accessToken) {
+      return;
+    }
+    const users = await userListCall(accessToken);
+    setAllUsers(Object.values(users.users).map((user: UserInfo) => ({
+      label: user.user_email,
+      value: user.user_id
+    })));
+  };
+
   useEffect(() => {
     getAllTags();
   }, [accessToken]);
+
+  useEffect(() => {
+    if (all_admin_roles.includes(userRole || "")) {
+      getAllUsers();
+    }
+  }, [accessToken, userRole]);
 
   // Derived states from userSpendData
   const totalSpend = userSpendData.metadata?.total_spend || 0;
@@ -328,7 +348,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
 
   useEffect(() => {
     fetchUserSpendData();
-  }, [accessToken, dateValue]);
+  }, [accessToken, dateValue, selectedUsers]);
 
   const modelMetrics = processActivityData(userSpendData, "models");
   const keyMetrics = processActivityData(userSpendData, "api_keys");
@@ -376,6 +396,21 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                   }}
                 />
               </Col>
+              {all_admin_roles.includes(userRole || "") && allUsers && allUsers.length > 0 && (
+                <Col>
+                  <Text>Filter by Users</Text>
+                  <Select
+                    mode="multiple"
+                    style={{ width: '100%' }}
+                    placeholder={`Select users to filter...`}
+                    value={selectedUsers}
+                    onChange={setSelectedUsers}
+                    options={allUsers}
+                    className="mt-2"
+                    allowClear
+                  />
+                </Col>
+              )}
             </Grid>
             <TabGroup>
               <TabList variant="solid" className="mt-1">

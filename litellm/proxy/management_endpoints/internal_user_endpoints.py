@@ -1536,6 +1536,7 @@ async def get_user_daily_activity(
         default=50, description="Items per page", ge=1, le=1000
     ),
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+    user_ids: Optional[str] = None,
 ) -> SpendAnalyticsPaginatedResponse:
     """
     [BETA] This is a beta endpoint. It will change.
@@ -1571,6 +1572,8 @@ async def get_user_daily_activity(
         entity_id: Optional[str] = None
         if not _user_has_admin_view(user_api_key_dict):
             entity_id = user_api_key_dict.user_id
+        else:
+            entity_id = user_ids.split(",") if user_ids else None
 
         return await get_daily_activity(
             prisma_client=prisma_client,

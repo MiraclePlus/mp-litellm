@@ -5382,6 +5382,13 @@ class Router:
                     configurable_clientside_auth_params
                 )
 
+            # 20250710 - zhangpeng: 为了保证Model Hub价格与设置的一致，覆盖掉来自https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json中配置的价格
+            if litellm_params.input_cost_per_token:
+                model_group_info.input_cost_per_token = litellm_params.input_cost_per_token
+
+            if litellm_params.output_cost_per_token:
+                model_group_info.output_cost_per_token = litellm_params.output_cost_per_token
+
         return model_group_info
 
     def get_model_group_info(self, model_group: str) -> Optional[ModelGroupInfo]:

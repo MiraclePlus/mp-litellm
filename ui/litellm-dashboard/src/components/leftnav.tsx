@@ -98,7 +98,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         { key: "8", page: "settings", label: "Logging & Alerts", icon: <SettingOutlined />, roles: all_admin_roles },
         { key: "13", page: "admin-panel", label: "Admin Settings", icon: <SettingOutlined />, roles: all_admin_roles },
       ]
-    }
+    },
+    {
+      key: "150",
+      page: "external-link",
+      label: "LLM Proxy",
+      icon: <ApiOutlined />,
+    },
   ];
   // Find the menu item that matches the default page, including in submenus
   const findMenuItemKey = (page: string): string => {
@@ -165,6 +171,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               }
             })),
             onClick: !item.children ? () => {
+              if (item.page === "external-link") {
+                window.open(
+                  "http://llm-proxy.miracleplus.com:4000/public/identity-eval-chart",
+                  "_blank"
+                );
+                return;
+              }
               const newSearchParams = new URLSearchParams(window.location.search);
               newSearchParams.set('page', item.page);
               window.history.pushState(null, '', `?${newSearchParams.toString()}`);

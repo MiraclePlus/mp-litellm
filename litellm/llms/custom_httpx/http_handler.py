@@ -943,7 +943,7 @@ def get_async_httpx_client(
         _new_client = AsyncHTTPHandler(**params)
     else:
         _new_client = AsyncHTTPHandler(
-            timeout=httpx.Timeout(timeout=600.0, connect=5.0)
+            timeout=httpx.Timeout(timeout=1200.0, connect=5.0)
         )
 
     litellm.in_memory_llm_clients_cache.set_cache(
