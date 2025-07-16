@@ -146,7 +146,7 @@ const ViewUserSpend: React.FC<ViewUserSpendProps> = ({ userID, userRole, accessT
             Total Spend
           </p>
           <p className="text-2xl text-tremor-content-strong dark:text-dark-tremor-content-strong font-semibold">
-            ${roundedSpend}
+            ¥{roundedSpend}
           </p>
         </div>
         <div>

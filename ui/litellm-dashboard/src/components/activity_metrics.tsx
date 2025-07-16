@@ -69,7 +69,7 @@ export const CustomTooltip = ({
           const formattedValue =
             rawValue !== undefined
               ? isSpend
-                ? `$${rawValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                ? `¥${rawValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 : rawValue.toLocaleString()
               : "N/A";
 
@@ -169,9 +169,9 @@ const ModelSection = ({
         </Card>
         <Card>
           <Text>Total Spend</Text>
-          <Title>${formatNumberWithCommas(metrics.total_spend, 2)}</Title>
+          <Title>¥{formatNumberWithCommas(metrics.total_spend, 2)}</Title>
           <Text>
-            $
+            ¥
             {formatNumberWithCommas(
               metrics.total_spend / metrics.total_successful_requests,
               3
@@ -198,7 +198,7 @@ const ModelSection = ({
                     )}
                   </div>
                   <div className="text-right">
-                    <Text className="font-medium">${formatNumberWithCommas(keyData.spend, 2)}</Text>
+                    <Text className="font-medium">¥{formatNumberWithCommas(keyData.spend, 2)}</Text>
                     <Text className="text-xs text-gray-500">
                       {keyData.requests.toLocaleString()} requests | {keyData.tokens.toLocaleString()} tokens
                     </Text>
@@ -453,7 +453,7 @@ export const ActivityMetrics: React.FC<ActivityMetricsProps> = ({
           <Card>
             <Text>Total Spend</Text>
             <Title>
-              ${formatNumberWithCommas(totalMetrics.total_spend, 2)}
+              ¥{formatNumberWithCommas(totalMetrics.total_spend, 2)}
             </Title>
           </Card>
         </Grid>
@@ -525,7 +525,7 @@ export const ActivityMetrics: React.FC<ActivityMetricsProps> = ({
                 <Title>{modelMetrics[modelName].label || "Unknown Item"}</Title>
                 <div className="flex space-x-4 text-sm text-gray-500">
                   <span>
-                    $
+                    ¥
                     {formatNumberWithCommas(
                       modelMetrics[modelName].total_spend,
                       2

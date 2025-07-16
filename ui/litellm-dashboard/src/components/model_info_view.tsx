@@ -349,8 +349,8 @@ export default function ModelInfoView({
               <Card>
                 <Text>Pricing</Text>
                 <div className="mt-2">
-                  <Text>Input: ${modelData.input_cost}/1M tokens</Text>
-                  <Text>Output: ${modelData.output_cost}/1M tokens</Text>
+                  <Text>Input: ¥{modelData.input_cost}/1M tokens</Text>
+                  <Text>Output: ¥{modelData.output_cost}/1M tokens</Text>
                 </div>
               </Card>
             </Grid>

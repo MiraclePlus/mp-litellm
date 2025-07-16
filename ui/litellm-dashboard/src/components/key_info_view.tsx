@@ -258,7 +258,7 @@ export default function KeyInfoView({ keyId, onClose, keyData, accessToken, user
               <Card>
                 <Text>Spend</Text>
                 <div className="mt-2">
-                  <Title>${formatNumberWithCommas(keyData.spend, 4)}</Title>
+                  <Title>¥{formatNumberWithCommas(keyData.spend, 4)}</Title>
                   <Text>of {keyData.max_budget !== null ? `$${formatNumberWithCommas(keyData.max_budget)}` : "Unlimited"}</Text>
                 </div>
               </Card>
@@ -362,7 +362,7 @@ export default function KeyInfoView({ keyId, onClose, keyData, accessToken, user
 
                   <div>
                     <Text className="font-medium">Spend</Text>
-                    <Text>${formatNumberWithCommas(keyData.spend, 4)} USD</Text>
+                    <Text>¥{formatNumberWithCommas(keyData.spend, 4)} RMB</Text>
                   </div>
 
                   <div>

@@ -484,7 +484,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                           <Card>
                             <Title>Average Cost per Request</Title>
                             <Text className="text-2xl font-bold mt-2">
-                              $
+                              ¥
                               {formatNumberWithCommas(
                                 (totalSpend || 0) /
                                   (userSpendData.metadata?.total_api_requests ||
@@ -520,7 +520,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                               <div className="bg-white p-4 shadow-lg rounded-lg border">
                                 <p className="font-bold">{data.date}</p>
                                 <p className="text-cyan-500">
-                                  Spend: $
+                                  Spend: ¥
                                   {formatNumberWithCommas(
                                     data.metrics.spend,
                                     2
@@ -582,7 +582,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                               <div className="bg-white p-4 shadow-lg rounded-lg border">
                                 <p className="font-bold">{data.key}</p>
                                 <p className="text-cyan-500">
-                                  Spend: $
+                                  Spend: ¥
                                   {formatNumberWithCommas(data.spend, 2)}
                                 </p>
                                 <p className="text-gray-600">
@@ -621,7 +621,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                               index="provider"
                               category="spend"
                               valueFormatter={(value) =>
-                                `$${formatNumberWithCommas(value, 2)}`
+                                `¥${formatNumberWithCommas(value, 2)}`
                               }
                               colors={["cyan"]}
                             />
@@ -648,7 +648,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                                     <TableRow key={provider.provider}>
                                       <TableCell>{provider.provider}</TableCell>
                                       <TableCell>
-                                        $
+                                        ¥
                                         {formatNumberWithCommas(
                                           provider.spend,
                                           2

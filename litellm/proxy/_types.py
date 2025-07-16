@@ -1009,7 +1009,7 @@ class BudgetNewRequest(LiteLLMPydanticObjectBase):
     budget_id: Optional[str] = Field(default=None, description="The unique budget id.")
     max_budget: Optional[float] = Field(
         default=None,
-        description="Requests will fail if this budget (in USD) is exceeded.",
+        description="Requests will fail if this budget (in RMB) is exceeded.",
     )
     soft_budget: Optional[float] = Field(
         default=None,
@@ -3104,7 +3104,7 @@ class DefaultInternalUserParams(LiteLLMPydanticObjectBase):
     )
     max_budget: Optional[float] = Field(
         default=None,
-        description="Default maximum budget (in USD) for new users created",
+        description="Default maximum budget (in RMB) for new users created",
     )
     budget_duration: Optional[str] = Field(
         default=None,

@@ -399,12 +399,12 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
               <Card>
                 <Text>Budget Status</Text>
                 <div className="mt-2">
-                  <Title>${formatNumberWithCommas(info.spend, 4)}</Title>
+                  <Title>¥{formatNumberWithCommas(info.spend, 4)}</Title>
                   <Text>
                     of{" "}
                     {info.max_budget === null
                       ? "Unlimited"
-                      : `$${formatNumberWithCommas(info.max_budget, 4)}`}
+                      : `¥${formatNumberWithCommas(info.max_budget, 4)}`}
                   </Text>
                   {info.budget_duration && (
                     <Text className="text-gray-500">
@@ -414,7 +414,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   <br />
                   {info.team_member_budget_table && (
                     <Text className="text-gray-500">
-                      Team Member Budget: $
+                      Team Member Budget: ¥
                       {formatNumberWithCommas(
                         info.team_member_budget_table.max_budget,
                         4
@@ -557,7 +557,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                     </Select>
                   </Form.Item>
 
-                  <Form.Item label="Max Budget (USD)" name="max_budget">
+                  <Form.Item label="Max Budget (RMB)" name="max_budget">
                     <NumericalInput
                       step={0.01}
                       precision={2}
@@ -566,7 +566,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   </Form.Item>
 
                   <Form.Item
-                    label="Team Member Budget (USD)"
+                    label="Team Member Budget (RMB)"
                     name="team_member_budget"
                     tooltip="This is the individual budget for a user in the team."
                   >

@@ -96,9 +96,9 @@ const TopKeyView: React.FC<TopKeyViewProps> = ({
         cell: (info: any) => info.getValue() || "-",
       },
     {
-      header: "Spend (USD)",
+      header: "Spend (RMB)",
       accessorKey: "spend",
-      cell: (info: any) => `$${formatNumberWithCommas(info.getValue(), 2)}`,
+      cell: (info: any) => `¥${formatNumberWithCommas(info.getValue(), 2)}`,
     },
   ];
 
@@ -157,7 +157,7 @@ const TopKeyView: React.FC<TopKeyViewProps> = ({
                     </div>
                     <div className="text-sm">
                       <span className="text-gray-300">Spend: </span>
-                      <span className="text-white font-medium">${formatNumberWithCommas(item?.spend, 2)}</span>
+                      <span className="text-white font-medium">¥{formatNumberWithCommas(item?.spend, 2)}</span>
                     </div>
                   </div>
                 </div>

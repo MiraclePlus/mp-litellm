@@ -90,7 +90,7 @@ const TeamMembersComponent: React.FC<TeamMembersComponentProps> = ({
                   <InfoCircleOutlined />
                 </Tooltip>
               </TableHeaderCell>
-              <TableHeaderCell>Team Member Budget (USD)</TableHeaderCell>
+              <TableHeaderCell>Team Member Budget (RMB)</TableHeaderCell>
               <TableHeaderCell></TableHeaderCell>
             </TableRow>
           </TableHead>
@@ -108,10 +108,10 @@ const TeamMembersComponent: React.FC<TeamMembersComponentProps> = ({
                   <Text className="font-mono">{member.role}</Text>
                 </TableCell>
                 <TableCell>
-                  <Text className="font-mono">${formatNumberWithCommas(getUserSpend(member.user_id), 4)}</Text>
+                  <Text className="font-mono">¥{formatNumberWithCommas(getUserSpend(member.user_id), 4)}</Text>
                 </TableCell>
                 <TableCell>
-                  <Text className="font-mono">{getUserBudget(member.user_id) ? `$${formatNumberWithCommas(Number(getUserBudget(member.user_id)), 4)}` : 'No Limit'}</Text>
+                  <Text className="font-mono">{getUserBudget(member.user_id) ? `¥${formatNumberWithCommas(Number(getUserBudget(member.user_id)), 4)}` : 'No Limit'}</Text>
                 </TableCell>
                 <TableCell>
                   {canEditTeam && (

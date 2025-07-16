@@ -38,7 +38,7 @@ export const columns = (
     ),
   },
   {
-    header: "User Spend ($ USD)",
+    header: "User Spend (¥ RMB)",
     accessorKey: "spend",
     cell: ({ row }) => (
       <span className="text-xs">
@@ -47,7 +47,7 @@ export const columns = (
     ),
   },
   {
-    header: "User Max Budget ($ USD)",
+    header: "User Max Budget (¥ RMB)",
     accessorKey: "max_budget",
     cell: ({ row }) => (
       <span className="text-xs">

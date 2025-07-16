@@ -9,12 +9,12 @@ export function valueFormatter(number: number) {
 }
 
 export function valueFormatterSpend(number: number) {
-  if (number === 0) return "$0";
+  if (number === 0) return "¥0";
   if (number >= 1000000) {
-    return "$" + number / 1000000 + "M";
+    return "¥" + number / 1000000 + "M";
   }
   if (number >= 1000) {
-    return "$" + number / 1000 + "k";
+    return "¥" + number / 1000 + "k";
   }
-  return "$" + number;
+  return "¥" + number;
 }

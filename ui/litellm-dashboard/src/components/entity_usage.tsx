@@ -365,7 +365,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                     <Card>
                       <Title>Total Spend</Title>
                       <Text className="text-2xl font-bold mt-2">
-                        $
+                        ¥
                         {formatNumberWithCommas(
                           spendData.metadata.total_spend,
                           2
@@ -425,7 +425,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                         <div className="bg-white p-4 shadow-lg rounded-lg border">
                           <p className="font-bold">{data.date}</p>
                           <p className="text-cyan-500">
-                            Total Spend: $
+                            Total Spend: ¥
                             {formatNumberWithCommas(data.metrics.spend, 2)}
                           </p>
                           <p className="text-gray-600">
@@ -466,7 +466,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                                     key={entity}
                                     className="text-sm text-gray-600"
                                   >
-                                    {metrics.metadata.team_alias || entity}: $
+                                    {metrics.metadata.team_alias || entity}: ¥
                                     {formatNumberWithCommas(
                                       metrics.metrics.spend,
                                       2
@@ -531,7 +531,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                                   {data.metadata.alias}
                                 </p>
                                 <p className="text-cyan-500">
-                                  Spend: $
+                                  Spend: ¥
                                   {formatNumberWithCommas(
                                     data.metrics.spend,
                                     4
@@ -585,7 +585,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                                       {entity.metadata.alias}
                                     </TableCell>
                                     <TableCell>
-                                      $
+                                      ¥
                                       {formatNumberWithCommas(
                                         entity.metrics.spend,
                                         4
@@ -637,7 +637,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                     categories={["spend"]}
                     colors={["cyan"]}
                     valueFormatter={(value) =>
-                      `$${formatNumberWithCommas(value, 2)}`
+                      `¥${formatNumberWithCommas(value, 2)}`
                     }
                     layout="vertical"
                     yAxisWidth={200}
@@ -659,7 +659,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                           index="provider"
                           category="spend"
                           valueFormatter={(value) =>
-                            `$${formatNumberWithCommas(value, 2)}`
+                            `¥${formatNumberWithCommas(value, 2)}`
                           }
                           colors={[
                             "cyan",
@@ -690,7 +690,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                               <TableRow key={provider.provider}>
                                 <TableCell>{provider.provider}</TableCell>
                                 <TableCell>
-                                  ${formatNumberWithCommas(provider.spend, 2)}
+                                  ¥{formatNumberWithCommas(provider.spend, 2)}
                                 </TableCell>
                                 <TableCell className="text-green-600">
                                   {provider.successful_requests.toLocaleString()}
