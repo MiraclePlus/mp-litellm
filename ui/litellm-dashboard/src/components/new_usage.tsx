@@ -107,7 +107,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
     if (!accessToken) {
       return;
     }
-    const users = await userListCall(accessToken);
+    const users = await userListCall(accessToken,null,null,100);
     setAllUsers(Object.values(users.users).map((user: UserInfo) => ({
       label: user.user_email,
       value: user.user_id
@@ -404,6 +404,7 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
                     style={{ width: '100%' }}
                     placeholder={`Select users to filter...`}
                     value={selectedUsers}
+                    optionFilterProp="label"
                     onChange={setSelectedUsers}
                     options={allUsers}
                     className="mt-2"
