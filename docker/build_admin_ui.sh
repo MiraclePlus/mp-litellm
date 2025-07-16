@@ -55,6 +55,8 @@ cd ui/litellm-dashboard
 # ensure have access to build_ui.sh
 chmod +x ./build_ui.sh
 
+npm install
+
 # run ./build_ui.sh
 ./build_ui.sh
 
