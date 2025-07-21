@@ -65,6 +65,9 @@ COPY --from=builder /wheels/ /wheels/
 # Install the built wheel using pip; again using a wildcard if it's the only file
 RUN pip install *.whl /wheels/* --no-index --find-links=/wheels/ && rm -f *.whl && rm -rf /wheels
 
+# Install httpx[socks]
+RUN pip install httpx[socks]
+
 # Generate prisma client
 RUN prisma generate
 RUN chmod +x docker/entrypoint.sh
