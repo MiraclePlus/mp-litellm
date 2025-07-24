@@ -294,7 +294,9 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
       const firstPageData = await userDailyActivityCall(
         accessToken,
         startTime,
-        endTime
+        endTime,
+        1,
+        selectedUsers
       );
 
       // Check if we need to fetch more pages
@@ -319,7 +321,8 @@ const NewUsagePage: React.FC<NewUsagePageProps> = ({
           accessToken,
           startTime,
           endTime,
-          page
+          page,
+          selectedUsers
         );
         allResults.push(...pageData.results);
         if (pageData.metadata) {

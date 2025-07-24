@@ -1415,7 +1415,8 @@ export const userDailyActivityCall = async (
   accessToken: String,
   startTime: Date,
   endTime: Date,
-  page: number = 1
+  page: number = 1,
+  userIds: string[] | null = null
 ) => {
   /**
    * Get daily user activity on proxy
@@ -1436,6 +1437,9 @@ export const userDailyActivityCall = async (
     queryParams.append("end_date", formatDate(endTime));
     queryParams.append("page_size", "1000");
     queryParams.append("page", page.toString());
+    if (userIds) {
+      queryParams.append("user_ids", userIds.join(","));
+    }
     const queryString = queryParams.toString();
     if (queryString) {
       url += `?${queryString}`;
